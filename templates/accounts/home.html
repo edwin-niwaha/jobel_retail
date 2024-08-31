@@ -1,4 +1,4 @@
-{% extends "users/base.html" %}
+{% extends "accounts/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -13,7 +13,7 @@
       <div class="p-4">
         <div class="d-flex justify-content-center align-items-center">
           <div class="text-center">
-            <h3>JOBEL - POINT OF SALE </h3>
+            <h3>JOBEL - FRAGRANCE SHOP </h3>
             <hr class="my-4" style="height: 5px; background-color: #008080;" />
             {% if user.is_authenticated %}
             <a class="btn btn-warning btn-lg" href="{% url 'logout' %}" role="button"
@@ -32,8 +32,8 @@
                   <small class="text-muted">({{ user.profile.get_role_display }})</small>
                   {% endif %}
                 </span>,
-                Welcome to JOBEL POS {% if not user.is_authenticated %} | You must be a registered user to use
-                this tool.{% endif %}
+                Welcome to JOBEL
+                <h4>Turn your dream perfume into reality.</h4>
               </p>
             </div>
 

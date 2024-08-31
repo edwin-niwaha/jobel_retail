@@ -9,6 +9,32 @@
         </button>
 
         <ul class="navbar-nav">
+            <li class="nav-item dropdown d-none d-sm-flex">
+                <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#"
+                    data-toggle="dropdown">
+                    <i class="mdi mdi-cart-outline"></i>
+                    <span class="count count-varient2">{{ feedback_count }}</span>
+                </a>
+                <div class="dropdown-menu navbar-dropdown navbar-dropdown-large preview-list"
+                    aria-labelledby="messageDropdown">
+                    <h6 class="p-3 mb-0">Customer Orders</h6>
+                    {% if user_feedback %}
+                    {% for feedback in user_feedback %}
+                    <a class="dropdown-item preview-item" href="{% url 'user_feedback' %}"
+                        onclick="return confirm('You will be redirected to a page for taking action ');">
+                        <div class="preview-item-content flex-grow">
+                            <span class="badge badge-pill badge-success">Request</span>
+                            <p class="text-small text-muted ellipsis mb-0">Oder from <b>{{ feedback.name }}</b>
+                            </p>
+                        </div>
+                        <p class="text-small text-muted align-self-start">{{ feedback.created_at|date:"g:i A" }}</p>
+                    </a>
+                    {% endfor %}
+                    {% else %}
+                    <p class="dropdown-item">No oders available.</p>
+                    {% endif %}
+                </div>
+            </li>
             <li class="nav-item dropdown">
                 <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#"
                     data-toggle="dropdown">
@@ -83,7 +109,7 @@
                 </a>
                 <div class="dropdown-menu navbar-dropdown w-100" aria-labelledby="profileDropdown">
                     <a class="dropdown-item" href="{% url 'profile_list' %}">
-                        <i class="mdi mdi-settings"></i>Users Profile </a>
+                        <i class="mdi mdi-settings"></i>Profiles </a>
                     <a class="dropdown-item" href="{% url 'user_feedback' %}">
                         <i class="mdi mdi-message"></i>Feedback </a>
                     <a class="dropdown-item" href="{% url 'logout' %}">

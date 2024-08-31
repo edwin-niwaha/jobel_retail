@@ -37,7 +37,7 @@ from .models import (
 
 # =================================== Home User  ===================================
 def home(request):
-    return render(request, "users/home.html")
+    return render(request, "accounts/home.html")
 
 
 # =================================== The dashboard ===================================
@@ -54,7 +54,7 @@ def dashboard(request):
 class RegisterView(View):
     form_class = RegisterForm
     initial = {"key": "value"}
-    template_name = "users/register.html"
+    template_name = "accounts/register.html"
 
     def dispatch(self, request, *args, **kwargs):
         # will redirect to the home page if a user tries to access the register page while logged in
@@ -108,9 +108,9 @@ class CustomLoginView(LoginView):
 
 
 class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
-    template_name = "users/password_reset.html"
-    email_template_name = "users/password_reset_email.html"
-    subject_template_name = "users/password_reset_subject"
+    template_name = "accounts/password_reset.html"
+    email_template_name = "accounts/password_reset_email.html"
+    subject_template_name = "accounts/password_reset_subject"
     success_message = (
         "We've emailed you instructions for setting your password, "
         "if an account exists with the email you entered. You should receive them shortly."
@@ -124,7 +124,7 @@ class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
 
 
 class ChangePasswordView(PasswordChangeView):
-    template_name = "users/change_password.html"
+    template_name = "accounts/change_password.html"
     success_message = "Successfully Changed Your Password"
     success_url = reverse_lazy("users-home")
 
@@ -158,7 +158,7 @@ def profile_list(request):
 
     return render(
         request,
-        "users/profile_list.html",  # Ensure this is the correct template name
+        "accounts/profile_list.html",  # Ensure this is the correct template name
         {
             "profiles": profiles,
             "table_title": "Profile List",
@@ -169,7 +169,7 @@ def profile_list(request):
 # =================================== Update Profile ===================================
 @login_required
 @transaction.atomic
-def update_profile(request, pk, template_name="users/profile_update.html"):
+def update_profile(request, pk, template_name="accounts/profile_update.html"):
     profile = get_object_or_404(Profile, pk=pk)
 
     if request.method == "POST":
@@ -217,7 +217,7 @@ def profile(request):
 
     return render(
         request,
-        "users/profile.html",
+        "accounts/profile.html",
         {"user_form": user_form, "profile_form": profile_form},
     )
 
@@ -274,7 +274,7 @@ message. Please try again later.",
     else:
         form = ContactForm()
 
-    return render(request, "users/contact_us.html", {"form": form})
+    return render(request, "accounts/contact_us.html", {"form": form})
 
 
 # =================================== Display User Feedback ===================================
@@ -285,7 +285,7 @@ def user_feedback(request):
     feedback = Contact.objects.all()
     return render(
         request,
-        "users/user_feedback.html",
+        "accounts/user_feedback.html",
         {"table_title": "User Feedback", "feedback": feedback},
     )
 

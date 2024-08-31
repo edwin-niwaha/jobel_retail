@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     # =================================== PROJECT APPLICATIONS ===================================
     "apps.authentication",
+    "apps.customers",
 ]
 
 MIDDLEWARE = [
