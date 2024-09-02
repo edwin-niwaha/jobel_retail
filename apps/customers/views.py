@@ -16,6 +16,7 @@ from apps.authentication.decorators import (
 )
 
 
+# =================================== customers list view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def customers_list_view(request):
@@ -29,6 +30,7 @@ def customers_list_view(request):
     return render(request, "customers/customers.html", context=context)
 
 
+# =================================== customers add view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 @transaction.atomic
@@ -77,13 +79,11 @@ def customers_add_view(request):
     return render(request, "customers/customers_add.html", context=context)
 
 
+# =================================== customers update view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 @transaction.atomic
 def customers_update_view(request, customer_id):
-    """
-    Handle updating an existing customer.
-    """
     # Retrieve the customer by ID
     customer = get_object_or_404(Customer, id=customer_id)
 
@@ -136,6 +136,7 @@ def customers_update_view(request, customer_id):
     return render(request, "customers/customers_update.html", context=context)
 
 
+# =================================== customers delete view ===================================
 @login_required
 @admin_required
 @transaction.atomic

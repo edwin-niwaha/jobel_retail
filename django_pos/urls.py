@@ -8,10 +8,16 @@ from django.urls import include, path
 urlpatterns = [
     # Admin route
     path("admin/", admin.site.urls),
+    # Index/Home routes
+    path("", include("apps.pos.urls")),
     # Authentication routes
-    path("", include("apps.authentication.urls")),
+    path("auth/", include("apps.authentication.urls")),
     # Customer routes
     path("customers/", include("apps.customers.urls")),
+    # Product routes
+    path("products/", include("apps.products.urls")),
+    # Sales routes
+    path("sales/", include("apps.sales.urls")),
 ]
 
 # Additional URL patterns for debugging and media files in development mode

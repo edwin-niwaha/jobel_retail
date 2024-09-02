@@ -2,6 +2,7 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 
+# =================================== customers model ===================================
 class Customer(models.Model):
     first_name = models.CharField(max_length=50, verbose_name="First Name")
     last_name = models.CharField(
@@ -33,12 +34,3 @@ class Customer(models.Model):
 
     def to_select2(self):
         return {"label": self.get_full_name(), "value": self.id}
-
-    # @property
-    # def prefixed_id(self):
-    #     if self.pk < 10:
-    #         return f"JBL00{self.pk}"
-    #     elif self.pk < 100:
-    #         return f"JBL0{self.pk}"
-    #     else:
-    #         return f"JBL{self.pk}"

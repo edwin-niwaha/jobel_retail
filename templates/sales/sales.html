@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <!--Create new sale-->
+    <div class="row mb-3">
+        <div class="col">
+            <a href="{% url 'sales:sales_add' %}" class="btn btn-success font-weight-bold">
+                <i class="mdi mdi-plus mr-2"></i> Create Sale
+            </a>
+            <button title="Print" type="button" class="btn btn-sm ml-3 btn-success" onclick="printDiv('printMe')">
+                <i class="mdi mdi-printer btn-icon-prepend"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- DataTable -->
+    <div id="printMe" class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Customers</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="my-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>ID
+                            <th style="width:25%">Date</th>
+                            <th style="width:20%">Customer</th>
+                            <th class="text-center" style="width:10%">Total</th>
+                            <th class="text-center" style="width:5%">Items</th>
+                            <th colspan="2" class="text-center" style="width:10%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sales %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{s.id}}</td>
+                            <td>{{s.date_added}}</td>
+                            <td>{{s.customer.get_full_name}}</td>
+                            <td class="text-right">{{s.grand_total|floatformat:"2"|intcomma}}</td>
+                            <td class="text-center">{{s.sum_items}}</td>
+
+                            <td class="text-center">
+                                <!--View-->
+                                <a href="{% url 'sales:sales_details' s.id %}" class="text-decoration-none">
+                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="tooltip"
+                                        title="Update sale">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </a>
+                            </td>
+                            <td>
+                                <!--Print receipt-->
+                                <a href="{% url 'sales:sales_receipt_pdf' s.id %}" class="text-decoration-none">
+                                    <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="tooltip"
+                                        title="View Receipt">
+                                        <i class="fas fa-receipt"></i>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-right"><strong>Total</strong></td>
+                            <td class="text-right">
+                                <strong>{{ grand_total|floatformat:"2"|intcomma }}</strong></td>
+                            <td class="text-center">
+                                <strong>{{ total_items}}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

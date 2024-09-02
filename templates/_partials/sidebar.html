@@ -6,9 +6,12 @@
         </a>
     </div>
     <ul class="nav">
+
+        <!-- Divider -->
         <li>
-            <hr>
+            <hr class="sidebar-divider my-3">
         </li>
+
         <li class="nav-item">
             <a class="nav-link" href="/">
                 <i class="mdi mdi-home menu-icon"></i>
@@ -22,38 +25,38 @@
                 <span class="menu-title">DASHBOARD</span>
             </a>
         </li>
+
+        <!-- Divider -->
         <li>
-            <hr />
+            <hr class="sidebar-divider my-0">
         </li>
 
+        <!-- Nav Item - Products Collapse Menu -->
         <li class="nav-item">
             <a class="nav-link" data-toggle="collapse" href="#ui-basic-sp" aria-expanded="false"
                 aria-controls="ui-basic">
                 <i class="mdi mdi-package menu-icon"></i>
-                <span class="menu-title">Inventory</span>
+                <span class="menu-title">Products</span>
                 <i class="menu-arrow"></i>
             </a>
             <div class="collapse" id="ui-basic-sp">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> Stock Levels
+                        <a class="nav-link active" href="{% url 'products:categories_list' %}" target="_self">
+                            Categories
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> Add/Edit Items:
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">
-                            Purchase Orders
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> Suppliers
+                        <a class="nav-link active" href="{% url 'products:products_list' %}" target="_self"> Products
                         </a>
                     </li>
                 </ul>
             </div>
+        </li>
+
+        <!-- Divider -->
+        <li>
+            <hr class="sidebar-divider my-0">
         </li>
 
         <li class="nav-item">
@@ -64,47 +67,10 @@
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+            <a class="nav-link" href="{% url 'sales:sales_list' %}">
                 <i class="mdi mdi-cart menu-icon"></i>
-                <span class="menu-title"> Sales</span>
-                <i class="menu-arrow"></i>
+                <span class="menu-title">Sales</span>
             </a>
-            <div class="collapse" id="ui-basic">
-                <ul class="nav flex-column sub-menu">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> New Sale
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> Sales History
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> Returns/Exchanges
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic3" aria-expanded="false" aria-controls="ui-basic">
-                <i class="mdi mdi-account-group  menu-icon"></i>
-                <span class="menu-title">Employees</span>
-                <i class="menu-arrow"></i>
-            </a>
-            <div class="collapse" id="ui-basic3">
-                <ul class="nav flex-column sub-menu">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> User Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self"> Roles and Permissions
-                        </a>
-                    </li>
-                </ul>
-            </div>
         </li>
 
         {% if user.profile.role == 'administrator' %}
@@ -136,7 +102,6 @@
             </a>
         </li>
         {% endif %}
-
 
         {% if user.profile.role == 'administrator' %}
         <li class="nav-item">

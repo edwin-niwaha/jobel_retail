@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Create new category and print button -->
+    <div class="row mb-3">
+        <div class="col">
+            <a href="{% url 'products:products_add' %}" class="btn btn-success font-weight-bold">
+                <i class="mdi mdi-plus mr-2"></i> Add Product
+            </a>
+            <button title="Print" type="button" class="btn btn-sm ml-3 btn-success" onclick="printDiv('printMe')">
+                <i class="mdi mdi-printer btn-icon-prepend"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- DataTable -->
+    <div id="printMe" class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Products</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="my-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>SKU</th>
+                            <th style="width:20%">Name</th>
+                            <th style="width:25%">Description</th>
+                            <th style="width:15%">Category</th>
+                            <th class="text-center" style="width:15%">Price(UgX)</th>
+                            <th class="text-center" style="width:10%">Status</th>
+                            <th colspan="2" class="text-center" style="width:10%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{p.prefixed_id}}</td>
+                            <td>{{p.name}}</td>
+                            <td>{{p.description}}</td>
+                            <td>{{p.category}}</td>
+                            <td class="text-right">{{ p.price|floatformat:"2"|intcomma }}</td>
+                            {% if p.status == "ACTIVE" %}
+                            <td class="text-center">
+                                <span class="badge badge-success" style="font-size:0.8em;">{{p.status}}</span>
+                            </td>
+                            {% elif p.status == "INACTIVE" %}
+                            <td class="text-center">
+                                <span class="badge badge-danger" style="font-size:0.8em;">{{p.status}}</span>
+                            </td>
+                            {% endif %}
+
+                            <td class="text-center">
+                                <!-- Update button -->
+                                <a href="{% url 'products:products_update' p.id %}" class="text-decoration-none"
+                                    onclick="return confirm('Are you sure you want to update this record?');">
+                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
+                                        title="Update product">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </a>
+                            </td>
+                            <td class="text-center print-hide">
+                                {% if user.profile.role == 'administrator' or user.profile.role == 'manager' %}
+                                <!-- Delete button and modal -->
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal{{ p.id }}" title="Delete product">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal{{ p.id }}" tabindex="-1"
+                                    aria-labelledby="deleteModalLabel{{ p.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ p.id }}">Delete Product
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close">X</button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the product: <h3>{{ p.name }}?
+                                                </h3>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <a href="{% url 'products:products_delete' p.id %}"
+                                                    class="text-decoration-none">
+                                                    <button type="button" class="btn btn-danger">Delete</button>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-right"><strong>Total</strong></td>
+                            <td class="text-right">
+                                <strong>{{ total_price|floatformat:"2"|intcomma }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

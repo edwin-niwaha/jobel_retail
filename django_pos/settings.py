@@ -1,28 +1,21 @@
 import os
 from pathlib import Path
-
-# To keep secret keys in environment variables
 from dotenv import load_dotenv
 
+# Load environment variables from .env file
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Security settings
+SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", False)
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", False)
-
-ALLOWED_HOSTS = ["*"]
-
-
-# =================================== APPLICATION DEFINITION ===================================
+# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -31,15 +24,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "social_django",
-    # =================================== OTHER APPLICATIONS ===================================
     "bootstrap5",
     "formtools",
     "crispy_forms",
     "crispy_bootstrap5",
     "django.contrib.humanize",
-    # =================================== PROJECT APPLICATIONS ===================================
+    "apps.pos",
     "apps.authentication",
     "apps.customers",
+    "apps.sales",
+    "apps.products",
 ]
 
 MIDDLEWARE = [
@@ -59,7 +53,7 @@ ROOT_URLCONF = "django_pos.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR, "templates"],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -69,7 +63,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
-                # Other context processors
                 "apps.authentication.context_processors.guest_profiles_context",
                 "apps.authentication.context_processors.guest_user_feedback_context",
             ],
@@ -79,11 +72,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "django_pos.wsgi.application"
 
-
-# =================================== DATABASE CONFIGURATIONS ===================================
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-
+# Database configuration
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -95,10 +84,7 @@ DATABASES = {
     }
 }
 
-
-# =================================== PASSWORD VALIDATION ===================================
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -114,84 +100,58 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# A tuple of authentication backends that Django will use for authentication.
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.github.GithubOAuth2",
     "social_core.backends.google.GoogleOAuth2",
-    # 'social_core.backends.twitter.TwitterOAuth',
-    # "social_core.backends.linkedin.LinkedinOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 )
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
-
-# Static files like CSS, JavaScript, or images will be served under the `/static/` URL path.
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+# Static and media files
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static/"]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
-
-# `MEDIA_ROOT` and `MEDIA_URL` are settings in a Django project related to handling media files such
-# as user-uploaded images, files, etc.
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
-
-# The `LOGIN_REDIRECT_URL` setting in Django specifies the URL where the user will be redirected to
-# after a successful login. In this case, it is set to `"/"` which means that after a user
-# successfully logs in, they will be redirected to the root URL of the website.
+# Login settings
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "login"
 
-# =================================== SOCIIAL AUTH CONFIGURATIONS ===================================
-# social auth configs for github
-SOCIAL_AUTH_GITHUB_KEY = str(os.getenv("GITHUB_KEY"))
-SOCIAL_AUTH_GITHUB_SECRET = str(os.getenv("GITHUB_SECRET"))
+# Social authentication settings
+SOCIAL_AUTH_GITHUB_KEY = os.getenv("GITHUB_KEY")
+SOCIAL_AUTH_GITHUB_SECRET = os.getenv("GITHUB_SECRET")
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_KEY")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_SECRET")
 
-# social auth configs for google
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = str(os.getenv("GOOGLE_KEY"))
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = str(os.getenv("GOOGLE_SECRET"))
-
-
-# =================================== EMAIL CONFIGURATIONS ===================================
+# Email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = str(os.getenv("EMAIL_USER"))
-EMAIL_HOST_PASSWORD = str(os.getenv("EMAIL_PASS"))
+EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
 
+# Session settings
 SESSION_COOKIE_AGE = 3600  # 60 * 60 Session duration in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expire session when browser closes
 
-# Specifying default primary key field type for models that don't define a primary key field explicitly.
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-# =================================== SETTINGS TO DJANGO CRISPY FORMS PACKAGE ===================================
+# Django Crispy Forms settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-
-# =================================== USE THE LOGGER ===================================
+# Logging settings
 LOGS_DIR = BASE_DIR / "logs"
-LOGS_DIR.mkdir(
-    parents=True, exist_ok=True
-)  # Create a 'logs' directory inside your project folder if it doesn't exist
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {
     "version": 1,
@@ -204,7 +164,7 @@ LOGGING = {
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
-            "filename": LOGS_DIR / "app.log",  # Path to your log file
+            "filename": LOGS_DIR / "app.log",
         },
     },
     "loggers": {

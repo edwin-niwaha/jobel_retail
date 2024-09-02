@@ -1,28 +1,16 @@
 from django.urls import path, include, re_path
 from django.contrib.auth import views as auth_views
 from apps.authentication.forms import LoginForm
+from . import views
 from .views import (
     RegisterView,
     ChangePasswordView,
     CustomLoginView,
     ResetPasswordView,
-    contact_us,
-    delete_profile,
-    home,
-    dashboard,
-    profile,
-    profile_list,
-    update_profile,
-    validate_user_feedback,
-    user_feedback,
-    delete_feedback,
 )
 
 # Define URL patterns for the application
 urlpatterns = [
-    # Home and Dashboard
-    path("", home, name="users-home"),
-    path("dashboard/", dashboard, name="dashboard"),
     # User Registration and Login
     path("register/", RegisterView.as_view(), name="users-register"),
     path(
@@ -57,17 +45,17 @@ urlpatterns = [
     ),
     path("password-change/", ChangePasswordView.as_view(), name="password_change"),
     # Profile Management
-    path("profile/", profile, name="users-profile"),
-    path("profile-list/", profile_list, name="profile_list"),
-    path("profile/update/<int:pk>/", update_profile, name="update_profile"),
-    path("profile/delete/<int:pk>/", delete_profile, name="delete_profile"),
+    path("profile/", views.profile, name="users-profile"),
+    path("profile-list/", views.profile_list, name="profile_list"),
+    path("profile/update/<int:pk>/", views.update_profile, name="update_profile"),
+    path("profile/delete/<int:pk>/", views.delete_profile, name="delete_profile"),
     # User Feedback
-    path("contact-us/", contact_us, name="contact_us"),
-    path("feedback/", user_feedback, name="user_feedback"),
-    path("feedback/delete/<int:pk>/", delete_feedback, name="delete_feedback"),
+    path("contact-us/", views.contact_us, name="contact_us"),
+    path("feedback/", views.user_feedback, name="user_feedback"),
+    path("feedback/delete/<int:pk>/", views.delete_feedback, name="delete_feedback"),
     path(
         "feedback/validate/<int:contact_id>/",
-        validate_user_feedback,
+        views.validate_user_feedback,
         name="validate_user_feedback",
     ),
     # Social Authentication

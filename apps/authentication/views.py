@@ -18,7 +18,6 @@ from django.views import View
 from apps.authentication.decorators import (
     admin_or_manager_required,
     admin_required,
-    admin_or_manager_or_staff_required,
 )
 
 from .forms import (
@@ -33,21 +32,6 @@ from .models import (
     Profile,
     Contact,
 )
-
-
-# =================================== Home User  ===================================
-def home(request):
-    return render(request, "accounts/home.html")
-
-
-# =================================== The dashboard ===================================
-@login_required
-@admin_or_manager_or_staff_required
-def dashboard(request):
-
-    context = {}
-
-    return render(request, "dashboard.html", context)
 
 
 # =================================== Register User  ===================================
