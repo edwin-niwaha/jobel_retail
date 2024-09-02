@@ -77,8 +77,8 @@
                                         <div class="form-group mt-4">
                                             <label>Subtotal</label>
                                             <div class="input-group">
-                                                <input name="sub_total" class="form-control" value="{{sale.sub_total}}"
-                                                    readonly>
+                                                <input name="sub_total" class="form-control"
+                                                    value="{{sale.sub_total|floatformat:"2"|intcomma}}" readonly>
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -92,21 +92,21 @@
                                             <label>Tax Amount</label>
                                             <div class="input-group">
                                                 <input name="tax_amount" class="form-control"
-                                                    value="{{sale.tax_amount}}" readonly>
+                                                    value="{{sale.tax_amount|floatformat:"2"|intcomma}}" readonly>
                                             </div>
                                         </div>
                                         <div class="form-group">
                                             <label>Grand Total</label>
                                             <div class="input-group">
                                                 <input name="grand_total" class="form-control"
-                                                    value="{{sale.grand_total}}" readonly>
+                                                    value="{{sale.grand_total|floatformat:"2"|intcomma}}" readonly>
                                             </div>
                                         </div>
                                         <div class="form-group">
                                             <label>Amount payed</label>
                                             <div class="input-group">
                                                 <input name="amount_payed" class="form-control"
-                                                    value="{{sale.amount_payed}}" readonly>
+                                                    value="{{sale.amount_payed|floatformat:"2"|intcomma}}" readonly>
                                             </div>
                                         </div>
 

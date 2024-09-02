@@ -56,7 +56,8 @@
                             </td>
                             <td>
                                 <!--Print receipt-->
-                                <a href="{% url 'sales:sales_receipt_pdf' s.id %}" class="text-decoration-none">
+                                <a href="{% url 'sales:sales_receipt_pdf' s.id %}" class="text-decoration-none"
+                                    target="_blank">
                                     <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="tooltip"
                                         title="View Receipt">
                                         <i class="fas fa-receipt"></i>

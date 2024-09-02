@@ -6,14 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django_pos.wsgi import *
-from django_pos import settings
+from xhtml2pdf import pisa
 from django.template.loader import get_template
 from django.db.models import Sum
 from apps.customers.models import Customer
 from apps.products.models import Product
-
-# from weasyprint import HTML, CSS
 from .models import Sale, SaleDetail
+
 
 logger = logging.getLogger(__name__)
 
@@ -121,16 +120,20 @@ def receipt_pdf_view(request, sale_id):
     # Get the sale details
     details = SaleDetail.objects.filter(sale=sale)
 
+    # Render the template
     template = get_template("sales/sales_receipt_pdf.html")
     context = {"sale": sale, "details": details}
     html_template = template.render(context)
 
-    # CSS Boostrap
-    css_url = os.path.join(
-        settings.BASE_DIR, "static/css/receipt_pdf/bootstrap.min.css"
-    )
+    # Create a file-like buffer to receive PDF data
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="receipt.pdf"'
 
-    # Create the pdf
-    pdf = HTML(string=html_template).write_pdf(stylesheets=[CSS(css_url)])
+    # Convert HTML to PDF
+    pisa_status = pisa.CreatePDF(html_template, dest=response)
 
-    return HttpResponse(pdf, content_type="application/pdf")
+    # Check if PDF was created successfully
+    if pisa_status.err:
+        return HttpResponse("Error generating PDF", status=500)
+
+    return response
