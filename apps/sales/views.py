@@ -1,8 +1,10 @@
 import json
 import logging
+from django.http import JsonResponse
 from django.db import transaction
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django_pos.wsgi import *
@@ -13,11 +15,19 @@ from apps.customers.models import Customer
 from apps.products.models import Product
 from .models import Sale, SaleDetail
 
+# Import custom decorators
+from apps.authentication.decorators import (
+    admin_or_manager_or_staff_required,
+    admin_or_manager_required,
+    admin_required,
+)
 
 logger = logging.getLogger(__name__)
 
 
+# =================================== Sale list view ===================================
 @login_required
+@admin_or_manager_or_staff_required
 def sales_list_view(request):
     sales = Sale.objects.all().select_related("customer").order_by("id")
     grand_total = sales.aggregate(Sum("grand_total"))["grand_total__sum"] or 0
@@ -33,6 +43,8 @@ def sales_list_view(request):
     return render(request, "sales/sales.html", context=context)
 
 
+# =================================== Sale add view ===================================
+@admin_or_manager_or_staff_required
 @login_required
 def sales_add_view(request):
     context = {
@@ -95,7 +107,9 @@ def sales_add_view(request):
     return render(request, "sales/sales_add.html", context=context)
 
 
+# =================================== Sale details view ===================================
 @login_required
+@admin_or_manager_or_staff_required
 def sales_details_view(request, sale_id):
     # Get the sale using get_object_or_404 to handle cases where the sale might not exist
     sale = get_object_or_404(Sale, id=sale_id)
@@ -112,7 +126,40 @@ def sales_details_view(request, sale_id):
     return render(request, "sales/sales_details.html", context=context)
 
 
+# =================================== Sale delete view ===================================
 @login_required
+@admin_required
+@transaction.atomic
+def sale_delete_view(request, sale_id):
+    try:
+        # Get the sale to delete
+        sale = Sale.objects.get(id=sale_id)
+        sale.delete()
+        messages.success(
+            request, f"Sale: {sale_id} deleted successfully!", extra_tags="bg-success"
+        )
+    except Sale.DoesNotExist:
+        # Specific exception for when the sale is not found
+        messages.error(
+            request,
+            f"Sale: {sale_id} not found!",
+            extra_tags="bg-danger",
+        )
+    except Exception as e:
+        # General exception for any other errors
+        messages.error(
+            request,
+            "There was an error during the elimination!",
+            extra_tags="bg-danger",
+        )
+        print(e)
+    finally:
+        return redirect("sales:sales_list")
+
+
+# =================================== Sale delete view ===================================
+@login_required
+@admin_or_manager_or_staff_required
 def receipt_pdf_view(request, sale_id):
     # Get the sale
     sale = Sale.objects.get(id=sale_id)

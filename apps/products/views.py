@@ -85,11 +85,7 @@ def categories_add_view(request):
 @admin_or_manager_required
 @transaction.atomic
 def categories_update_view(request, category_id):
-    """
-    Args:
-        request:
-        category_id: The category's ID that will be updated
-    """
+
     # Get the category or return a 404 error if not found
     category = get_object_or_404(Category, id=category_id)
 
@@ -132,16 +128,11 @@ def categories_update_view(request, category_id):
     return render(request, "products/categories_update.html", context=context)
 
 
-# =================================== categories update view ===================================
-@login_required
+# =================================== categories delete view ===================================
 @admin_required
 @transaction.atomic
 def categories_delete_view(request, category_id):
-    """
-    Args:
-        request:
-        category_id : The category's ID that will be deleted
-    """
+
     try:
         # Get the category to delete
         category = Category.objects.get(id=category_id)
@@ -307,3 +298,9 @@ def products_delete_view(request, product_id):
         )
         print(e)
         return redirect("products:products_list")
+
+
+def is_ajax(request):
+    return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+
+

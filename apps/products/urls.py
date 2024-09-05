@@ -28,4 +28,6 @@ urlpatterns = [
     path("update/<str:product_id>", views.products_update_view, name="products_update"),
     # Delete product
     path("delete/<str:product_id>", views.products_delete_view, name="products_delete"),
+    # Get products AJAX
+    # path("get", views.get_products_view, name="get_products"),
 ]
