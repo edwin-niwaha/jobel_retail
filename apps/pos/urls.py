@@ -12,4 +12,5 @@ urlpatterns = [
         views.monthly_earnings_view,
         name="monthly_earnings_view",
     ),
+    path("dashboard/sales-data/", views.sales_data_api, name="sales-data-api"),
 ]

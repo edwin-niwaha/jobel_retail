@@ -28,7 +28,6 @@
                             <th>#</th>
                             <th>Name</th>
                             <th>Description</th>
-                            <th class="text-center" style="width:15%">Status</th>
                             <th colspan="2" class="text-center" style="width:15%">Actions</th>
                         </tr>
                     </thead>
@@ -38,16 +37,6 @@
                             <td>{{ forloop.counter }}</td>
                             <td>{{c.name}}</td>
                             <td>{{c.description}}</td>
-                            {% if c.status == "ACTIVE" %}
-                            <td class="text-center">
-                                <span class="badge badge-success" style="font-size:0.8em;">{{c.status}}</span>
-                            </td>
-                            {% elif c.status == "INACTIVE" %}
-                            <td class="text-center">
-                                <span class="badge badge-danger" style="font-size:0.8em;">{{c.status}}</span>
-                            </td>
-                            {% endif %}
-
                             <td class="text-center">
                                 <!-- Update button -->
                                 <a href="{% url 'products:categories_update' c.id %}" class="text-decoration-none"

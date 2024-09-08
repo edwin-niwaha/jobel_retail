@@ -31,9 +31,12 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "apps.pos",
     "apps.authentication",
-    "apps.customers",
-    "apps.sales",
     "apps.products",
+    "apps.purchases",
+    "apps.customers",
+    "apps.orders",
+    "apps.sales",
+    "apps.expenses",
 ]
 
 MIDDLEWARE = [
@@ -65,6 +68,7 @@ TEMPLATES = [
                 "social_django.context_processors.login_redirect",
                 "apps.authentication.context_processors.guest_profiles_context",
                 "apps.authentication.context_processors.guest_user_feedback_context",
+                "apps.authentication.context_processors.low_stock_alerts",
             ],
         },
     },

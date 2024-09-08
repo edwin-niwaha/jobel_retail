@@ -1,4 +1,3 @@
-// =================================== Monthly sales for the current year ===================================
 document.addEventListener("DOMContentLoaded", async function () {
   await fetchData();
 });

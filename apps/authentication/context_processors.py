@@ -1,4 +1,7 @@
 from apps.authentication.models import Profile, Contact
+from apps.products.models import Product
+from django.db.models import F
+
 from django.contrib.auth.decorators import login_required
 
 
@@ -27,4 +30,20 @@ def guest_user_feedback_context(request):
     return {
         "user_feedback": user_feedback,
         "feedback_count": feedback_count,
+    }
+
+
+def low_stock_alerts(request):
+    # Fetch all products
+    products = Product.objects.all()
+
+    # Filter products with low stock
+    low_stock_products = products.filter(stock__lte=F("low_stock_threshold"))
+
+    # Count of low stock products
+    low_stock_count = low_stock_products.count()
+
+    return {
+        "low_stock_products": low_stock_products,
+        "low_stock_count": low_stock_count,
     }

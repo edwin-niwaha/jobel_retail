@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
+from django.db.models import F
 
 # Import models and forms
 from .models import Category, Product
@@ -35,7 +36,6 @@ def categories_list_view(request):
 def categories_add_view(request):
     context = {
         "active_icon": "products_categories",
-        "category_status": Category.STATUS_CHOICES,  # Use STATUS_CHOICES instead of the field choice
     }
 
     if request.method == "POST":
@@ -120,7 +120,6 @@ def categories_update_view(request, category_id):
 
     context = {
         "active_icon": "products_categories",
-        "category_status": Category.STATUS_CHOICES,  # Use STATUS_CHOICES instead of the field choice
         "form": form,
         "category": category,
     }
@@ -159,11 +158,16 @@ def categories_delete_view(request, category_id):
 def products_list_view(request):
     products = Product.objects.all()
     total_price = sum(product.price for product in products)
+    total_cost = sum(product.cost for product in products)
+    total_stock = sum(product.stock for product in products)
 
     context = {
         "active_icon": "products",
         "products": products,
         "total_price": total_price,
+        "total_cost": total_cost,
+        "total_stock": total_stock,
+        "table_title": "Poducts",
     }
 
     return render(request, "products/products.html", context=context)
@@ -177,7 +181,6 @@ def products_add_view(request):
     context = {
         "active_icon": "products_categories",
         "product_status": Product.status.field.choices,
-        "categories": Category.objects.filter(status="ACTIVE"),
     }
 
     if request.method == "POST":
@@ -300,7 +303,25 @@ def products_delete_view(request, product_id):
         return redirect("products:products_list")
 
 
-def is_ajax(request):
-    return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+# =================================== Products Detail ===================================
+def product_detail(request, id):
+    product = get_object_or_404(Product, id=id)
+    context = {"product": product}
+    return render(request, "products/products.html", context)
 
 
+# =================================== Stock alerts view ===================================
+def stock_alerts_view(request):
+    # Fetch all products
+    products = Product.objects.all()
+
+    # Filter products with low stock or out of stock
+    low_stock_products = products.filter(stock__lte=F("low_stock_threshold"))
+    out_of_stock_products = products.filter(stock=0)
+
+    context = {
+        "low_stock_products": low_stock_products,
+        "out_of_stock_products": out_of_stock_products,
+    }
+
+    return render(request, "products/stock_alerts.html", context)

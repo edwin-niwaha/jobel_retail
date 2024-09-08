@@ -7,6 +7,7 @@ class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
         fields = [
+            "trans_date",
             "customer",
             "sub_total",
             "grand_total",
@@ -16,6 +17,7 @@ class SaleForm(forms.ModelForm):
             "amount_change",
         ]
         widgets = {
+            "trans_date": forms.DateInput(attrs={"type": "date", "required": True}),
             "date_added": forms.DateTimeInput(attrs={"type": "datetime-local"}),
             "customer": forms.Select(attrs={"class": "form-control"}),
             "sub_total": forms.NumberInput(

@@ -6,24 +6,21 @@ from .models import Category, Product
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "description", "status"]
+        fields = ["name", "description"]
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter category name"}
             ),
-            "description": forms.Textarea(
+            "description": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "rows": 3,
                     "placeholder": "Enter category description",
                 }
             ),
-            "status": forms.Select(attrs={"class": "form-control"}),
         }
         labels = {
             "name": "Category Name",
-            "description": "Category Description",
-            "status": "Category Status",
+            "description": "Description",
         }
 
 
@@ -36,10 +33,12 @@ class ProductForm(forms.ModelForm):
             "description",
             "status",
             "category",
+            "product_type",
+            "gender",
+            "cost",
             "price",
-        ]  # Include all fields from the model
-
-        # Custom widgets and attributes for form fields can be added here
+            "stock",
+        ]
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter product name"}
@@ -53,16 +52,29 @@ class ProductForm(forms.ModelForm):
             ),
             "status": forms.Select(attrs={"class": "form-control"}),
             "category": forms.Select(attrs={"class": "form-control"}),
+            "product_type": forms.Select(attrs={"class": "form-control"}),
+            "gender": forms.Select(attrs={"class": "form-control"}),
+            "cost": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Enter the cost price"}
+            ),
             "price": forms.NumberInput(
-                attrs={"class": "form-control", "placeholder": "Enter price"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter the selling price",
+                }
+            ),
+            "stock": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Enter stock quantity"}
             ),
         }
-
-        # Custom labels can be added here if needed
         labels = {
             "name": "Product Name",
             "description": "Description",
             "status": "Status",
             "category": "Category",
-            "price": "Price",
+            "product_type": "Product Type",
+            "gender": "Gender",
+            "cost": "Cost Price",
+            "price": "Selling Price",
+            "stock": "Stock Quantity",
         }

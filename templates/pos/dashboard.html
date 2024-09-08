@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-
 {% block content %}
 
 <!-- Horizontal Card Section -->
@@ -54,7 +53,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-xs font-weight-bold mb-1">Registered Products</div>
+                            <div class="text-xs font-weight-bold mb-1">Products Registered</div>
                             <hr class="bg-white" style="height: 1px;" />
                             <div class="h5 mb-0 font-weight-bold">{{ products }}</div>
                         </div>
@@ -92,33 +91,109 @@
             <div class="card shadow mb-4">
                 <!-- Card Header -->
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Top Selling Products Overview</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
-                    {% if top_products_names_list %}
-                    <div class="mt-4">
-                        {% for name, quantity in top_products_names_list %}
-                        <div class="mb-3">
-                            <h6 class="font-weight-bold">{{ name }}</h6>
-                            <div class="progress">
-                                <div class="progress-bar bg-info" role="progressbar" style="width: {{ quantity }}%;"
-                                    aria-valuenow="{{ quantity }}" aria-valuemin="0" aria-valuemax="100">
-                                    {{ quantity }}%
+                    <div class="row text-center">
+                        <!-- Product 1 -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light shadow-sm">
+                                <div class="card-body py-4">
+                                    <div class="mr-3">
+                                        <i class="fas fa-circle text-primary mr-2"></i>{{ top_products_names_list.0 }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
+                        <!-- Product 2 -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light shadow-sm">
+                                <div class="card-body py-4">
+                                    <div class="mr-3">
+                                        <i class="fas fa-circle text-success mr-2"></i>{{ top_products_names_list.1 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Product 3 -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light shadow-sm">
+                                <div class="card-body py-4">
+                                    <div class="mr-3">
+                                        <i class="fas fa-circle text-info mr-2"></i>{{ top_products_names_list.2 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="alert alert-info" role="alert">
-                        No top-selling products available.
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <!-- Card for Total Sales Today -->
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-calendar-day card-icon"></i>
+                        <div>
+                            <h5 class="card-title">Sales Today</h5>
+                            <p class="card-text">UgX: {{ total_sales_today|floatformat:"2"|intcomma }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Total Sales This Week -->
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-calendar-week card-icon"></i>
+                        <div>
+                            <h5 class="card-title">Sales This Week</h5>
+                            <p class="card-text">UgX: {{ total_sales_week|floatformat:"2"|intcomma }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Total Sales This Month -->
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-calendar-month card-icon"></i>
+                        <div>
+                            <h5 class="card-title">Sales This Month</h5>
+                            <p class="card-text">UgX: {{ total_sales_month|floatformat:"2"|intcomma }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Stock Balance -->
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-cube card-icon"></i>
+                        <div>
+                            <h5 class="card-title">Stock Balance</h5>
+                            <p class="card-text">{{ total_stock }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Year Earnings Overview Chart -->
     <div class="row">
@@ -126,12 +201,32 @@
             <div class="card shadow mb-4">
                 <!-- Card Header -->
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Year Earnings Overview (Jan - Dec)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Year Earnings Overview (Jan - Dec, <span
+                            id="currentYear"></span>)
+                    </h6>
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
                     <div class="chart-area">
                         <canvas id="myLineChart" height="400px"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Year Earnings Overview Chart -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <!-- Card Header -->
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Earnings over the years
+                    </h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="salesChart" width="400" height="200"></canvas>
                     </div>
                 </div>
             </div>

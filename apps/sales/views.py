@@ -47,10 +47,14 @@ def sales_list_view(request):
 @admin_or_manager_or_staff_required
 @login_required
 def sales_add_view(request):
+    products = Product.objects.filter(status="ACTIVE")  # Only active products
     context = {
         "active_icon": "sales",
         "customers": [c.to_select2() for c in Customer.objects.all()],
-        "products": Product.objects.all(),
+        "products": products,  # Passing active products to the template
+        "total_stock": products.aggregate(Sum("stock"))[
+            "stock__sum"
+        ],  # Sum of stock balances
     }
 
     if request.method == "POST":
@@ -62,6 +66,7 @@ def sales_add_view(request):
             customer_id = int(request.POST.get("customer"))
             sale_attributes = {
                 "customer": Customer.objects.get(id=customer_id),
+                "trans_date": request.POST.get("trans_date"),
                 "sub_total": float(request.POST.get("sub_total", 0)),
                 "grand_total": float(request.POST.get("grand_total", 0)),
                 "tax_amount": float(request.POST.get("tax_amount", 0)),
@@ -79,11 +84,28 @@ def sales_add_view(request):
                 products = request.POST.getlist("products")
                 for product in products:
                     product_data = json.loads(product)
+                    product_obj = Product.objects.get(id=int(product_data["id"]))
+                    quantity_requested = int(product_data["quantity"])
+
+                    # Check if stock is available
+                    if product_obj.stock < quantity_requested:
+                        raise ValueError(
+                            f"Oops! Insufficient stock for {product_obj.name}"
+                        )
+
+                    # Update stock
+                    product_obj.stock -= quantity_requested
+                    product_obj.save()
+                    logger.info(
+                        f"Stock updated for {product_obj.name}: {product_obj.stock}"
+                    )
+
+                    # Create sale detail
                     detail_attributes = {
                         "sale": new_sale,
-                        "product": Product.objects.get(id=int(product_data["id"])),
+                        "product": product_obj,
                         "price": float(product_data["price"]),
-                        "quantity": int(product_data["quantity"]),
+                        "quantity": quantity_requested,
                         "total_detail": float(product_data["total_product"]),
                     }
                     SaleDetail.objects.create(**detail_attributes)
@@ -94,6 +116,9 @@ def sales_add_view(request):
                 )
                 return redirect("sales:sales_list")
 
+        except ValueError as ve:
+            logger.error(f"Stock error: {ve}")
+            messages.error(request, str(ve), extra_tags="danger")
         except Exception as e:
             logger.error(f"Error during sale creation: {e}")
             messages.error(

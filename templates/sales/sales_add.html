@@ -21,7 +21,12 @@
             <!-- Left Column: Sale Products -->
             <div class="col-md-9">
                 <div class="card card-secondary">
-                    <div class="card-header">Sale Products</div>
+                    <div class="card-header">Sale Products
+                        <span class="count count-varient2 bg-primary text-white px-2 py-1
+                            rounded">{{ total_stock }}</span>
+
+                    </div>
+
                     <div class="card-body">
                         <!-- Search Product -->
                         <div class="form-group">
@@ -75,6 +80,10 @@
 
                         <!-- Sale Details Fields -->
                         <div class="form-group mt-4">
+                            <label for="trans_date">Date</label>
+                            <input name="trans_date" class="form-control" id="trans_date" type="date" required>
+                        </div>
+                        <div class="form-group mt-4">
                             <label for="sub_total">Subtotal</label>
                             <input name="sub_total" class="form-control" id="sub_total" type="number" readonly>
                         </div>
@@ -97,7 +106,10 @@
                         </div>
 
                         <!-- Amount Change (Hidden) type="hidden" -->
-                        <input name="amount_change" class="form-control" id="amount_change">
+                        <div class="form-group">
+                            <label for="amount_payed">Change</label>
+                            <input name="amount_change" class="form-control" id="amount_change" type="number" readonly>
+                        </div>
 
                         <!-- Submit Button -->
                         <button type="submit" class="btn btn-success font-weight-bold">Create Sale</button>

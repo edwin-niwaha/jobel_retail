@@ -19,7 +19,7 @@
     <!-- DataTable -->
     <div id="printMe" class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Customers</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Sales</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -40,7 +40,7 @@
                         <tr>
                             <td>{{forloop.counter}}</td>
                             <td>{{s.id}}</td>
-                            <td>{{s.date_added}}</td>
+                            <td>{{s.trans_date}}</td>
                             <td>{{s.customer.get_full_name}}</td>
                             <td class="text-right">{{s.grand_total|floatformat:"2"|intcomma}}</td>
                             <td class="text-center">{{s.sum_items}}</td>
