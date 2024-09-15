@@ -43,7 +43,8 @@
           {% if user.is_authenticated %}
           {% if user.profile.role == 'guest' %}
           <li class="nav-item">
-            <a class="nav-link" href="#" onclick="showMessageDash(event)">DASHBOARD</a>
+            <!--Hide the dashboard-->
+            <!-- <a class="nav-link" href="#" onclick="showMessageDash(event)">DASHBOARD</a> -->
           </li>
           {% else %}
           <li class="nav-item">

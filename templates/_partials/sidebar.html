@@ -28,9 +28,15 @@
 
         <!-- Divider -->
         <li>
-            <hr class="sidebar-divider my-0">
+            <hr class="sidebar-divider my-3">
         </li>
 
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="mdi mdi-cart menu-icon"></i>
+                <span class="menu-title">Orders</span>
+            </a>
+        </li>
         <!-- Nav Item - Products Collapse Menu -->
         <li class="nav-item">
             <a class="nav-link" data-toggle="collapse" href="#ui-basic-sp" aria-expanded="false"
@@ -59,10 +65,46 @@
             </div>
         </li>
 
-        <!-- Divider -->
-        <li>
-            <hr class="sidebar-divider my-0">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'sales:sales_list' %}">
+                <i class="mdi mdi-trending-up menu-icon"></i>
+                <span class="menu-title">Sales</span>
+            </a>
         </li>
+
+        {% if user.profile.role == 'administrator' %}
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#ui-basic1" aria-expanded="false"
+                aria-controls="ui-basic1">
+                <i class="mdi mdi-bank menu-icon"></i>
+                <span class="menu-title">Finance & Accounts</span>
+                <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="ui-basic1">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" target="_self">Profit & Loss </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" target="_self">Cash Flow</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" target="_self">Balance Sheet</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" target="_self">Expense Tracking</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        {% else %}
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showMessageSettings(event)">
+                <i class="mdi mdi-bank menu-icon"></i>
+                <span class="menu-title">Finance & Accounts</span>
+            </a>
+        </li>
+        {% endif %}
 
         <li class="nav-item">
             <a class="nav-link" href="{% url 'customers:customers_list' %}">
@@ -71,24 +113,31 @@
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'sales:sales_list' %}">
-                <i class="mdi mdi-cart menu-icon"></i>
-                <span class="menu-title">Sales</span>
-            </a>
+        <!-- Divider -->
+        <li>
+            <hr class="sidebar-divider my-3">
         </li>
 
         {% if user.profile.role == 'administrator' %}
         <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic4" aria-expanded="false" aria-controls="ui-basic">
+            <a class="nav-link" data-toggle="collapse" href="#ui-basic2" aria-expanded="false"
+                aria-controls="ui-basic2">
                 <i class="mdi mdi-chart-bar menu-icon"></i>
                 <span class="menu-title">Reports</span>
                 <i class="menu-arrow"></i>
             </a>
-            <div class="collapse" id="ui-basic4">
+            <div class="collapse" id="ui-basic2">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
                         <a class="nav-link active" href="#" target="_self">Sales Reports</a>
+                        <!--
+                        Daily Sales Report: Displays total sales, sales by product, payment methods used, etc., for a
+                        specific day.
+                        Monthly/Yearly Sales Report: Summarizes total revenue, average sales per day, and top-selling
+                        products for longer periods.
+                        Sales by Product: Detailed breakdown of sales by individual products or categories.
+                        Sales by Payment Method: Analyze sales based on payment methods (cash, card, etc.).
+                        -->
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="#" target="_self">Inventory Reports</a>
@@ -110,21 +159,19 @@
 
         {% if user.profile.role == 'administrator' %}
         <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic5" aria-expanded="false" aria-controls="ui-basic">
+            <a class="nav-link" data-toggle="collapse" href="#ui-basic3" aria-expanded="false"
+                aria-controls="ui-basic3">
                 <i class="mdi mdi-settings menu-icon"></i>
                 <span class="menu-title">Settings</span>
                 <i class="menu-arrow"></i>
             </a>
-            <div class="collapse" id="ui-basic5">
+            <div class="collapse" id="ui-basic3">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'profile_list' %}" target="_self">Profiles</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'user_feedback' %}" target="_self">Feedback</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="" target="_self">Import Products</a>
                     </li>
                 </ul>
             </div>

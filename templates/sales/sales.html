@@ -28,11 +28,12 @@
                         <tr>
                             <th>#</th>
                             <th>ID
-                            <th style="width:25%">Date</th>
-                            <th style="width:20%">Customer</th>
-                            <th class="text-center" style="width:10%">Total</th>
-                            <th class="text-center" style="width:5%">Items</th>
-                            <th colspan="3" class="text-center" style="width:10%">Actions</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th class="text-center">Product</th>
+                            <th class="text-center">Total</th>
+                            <th class="text-center">Items</th>
+                            <th colspan="3" class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,6 +43,13 @@
                             <td>{{s.id}}</td>
                             <td>{{s.trans_date}}</td>
                             <td>{{s.customer.get_full_name}}</td>
+                            <td>
+                                <ul>
+                                    {% for detail in s.items.all %}
+                                    <li>{{ detail.product.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
                             <td class="text-right">{{s.grand_total|floatformat:"2"|intcomma}}</td>
                             <td class="text-center">{{s.sum_items}}</td>
 

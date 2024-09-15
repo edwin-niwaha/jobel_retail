@@ -1,0 +1,51 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="form-content my-3 p-3">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="card shadow-lg border-0 rounded-lg mt-0 mb-5">
+                    <div class="card-header justify-content-center">
+                        <h3 class="font-weight-light my-4 text-center" style="color:#F79420;">YOUR CART</h3>
+                    </div>
+
+                    {% if cart.items.exists %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Cart Items</h5>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            {% for item in cart.items.all %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ item.product.name }}</h6>
+                                    <small>{{ item.quantity }} @ UgX
+                                        {{ item.product.volume.price|floatformat:"2"|intcomma }}
+                                        each</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    UgX {{ item.get_total_price|floatformat:"2"|intcomma }}
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'orders:checkout' %}" class="col-md-12 btn btn-success">
+                            <i class="bi bi-credit-card"></i> Proceed to Checkout
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        Your cart is empty.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,9 +1,11 @@
+from django.contrib.auth.models import User
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 
 # =================================== customers model ===================================
 class Customer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50, verbose_name="First Name")
     last_name = models.CharField(
         max_length=50, blank=True, null=True, verbose_name="Last Name"
@@ -20,6 +22,8 @@ class Customer(models.Model):
         default="+256999999999",
         verbose_name="Business Telephone",
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created at")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")
 
     class Meta:
         db_table = "Customers"

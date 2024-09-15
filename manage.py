@@ -13,9 +13,9 @@ def main():
     """Run administrative tasks."""
 
     if os.environ.get("DJANGO_ENV") == "development":
-        settings = "django_pos.settings_dev"
+        settings = "perpetual_pos.settings_dev"
     else:
-        settings = "django_pos.settings"
+        settings = "perpetual_pos.settings"
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings)
     try:

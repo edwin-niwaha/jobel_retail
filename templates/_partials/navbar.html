@@ -47,7 +47,7 @@
                     <h6 class="p-3 mb-0">Low Stock Alerts</h6>
                     {% if low_stock_products %}
                     {% for product in low_stock_products %}
-                    <a class="dropdown-item preview-item" href="{% url 'products:product_detail' product.id %}"
+                    <a class="dropdown-item preview-item" href="{% url 'orders:product_detail' product.id %}"
                         onclick="return confirm('You will be redirected to a page for taking action');">
                         <div class="preview-item-content flex-grow">
                             <span class="badge badge-pill badge-warning">Low Stock</span>

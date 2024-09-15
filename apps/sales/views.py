@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django_pos.wsgi import *
+from perpetual_pos.wsgi import *
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from django.db.models import Sum
@@ -29,7 +29,13 @@ logger = logging.getLogger(__name__)
 @login_required
 @admin_or_manager_or_staff_required
 def sales_list_view(request):
-    sales = Sale.objects.all().select_related("customer").order_by("id")
+    # sales = Sale.objects.all().select_related("customer").order_by("id")
+    sales = (
+        Sale.objects.all()
+        .select_related("customer")
+        .prefetch_related("items")
+        .order_by("id")
+    )
     grand_total = sales.aggregate(Sum("grand_total"))["grand_total__sum"] or 0
     total_items = sum(sale.sum_items() for sale in sales)  # As before, calling method
 

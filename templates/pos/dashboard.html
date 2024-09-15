@@ -98,8 +98,8 @@
                     <div class="row text-center">
                         <!-- Product 1 -->
                         <div class="col-md-4 mb-3">
-                            <div class="card bg-light shadow-sm">
-                                <div class="card-body py-4">
+                            <div class="card bg-light shadow-sm h-100 d-flex align-items-center justify-content-center">
+                                <div class="card-body d-flex align-items-center justify-content-center">
                                     <div class="mr-3">
                                         <i class="fas fa-circle text-primary mr-2"></i>{{ top_products_names_list.0 }}
                                     </div>
@@ -108,8 +108,8 @@
                         </div>
                         <!-- Product 2 -->
                         <div class="col-md-4 mb-3">
-                            <div class="card bg-light shadow-sm">
-                                <div class="card-body py-4">
+                            <div class="card bg-light shadow-sm h-100 d-flex align-items-center justify-content-center">
+                                <div class="card-body d-flex align-items-center justify-content-center">
                                     <div class="mr-3">
                                         <i class="fas fa-circle text-success mr-2"></i>{{ top_products_names_list.1 }}
                                     </div>
@@ -118,8 +118,8 @@
                         </div>
                         <!-- Product 3 -->
                         <div class="col-md-4 mb-3">
-                            <div class="card bg-light shadow-sm">
-                                <div class="card-body py-4">
+                            <div class="card bg-light shadow-sm h-100 d-flex align-items-center justify-content-center">
+                                <div class="card-body d-flex align-items-center justify-content-center">
                                     <div class="mr-3">
                                         <i class="fas fa-circle text-info mr-2"></i>{{ top_products_names_list.2 }}
                                     </div>
@@ -132,17 +132,20 @@
         </div>
     </div>
 
+
     <div class="row">
         <!-- Card for Total Sales Today -->
         <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
+            <div class="card bg-success text-white h-100 d-flex flex-column">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-calendar-day card-icon"></i>
                         <div>
                             <h5 class="card-title">Sales Today</h5>
-                            <p class="card-text">UgX: {{ total_sales_today|floatformat:"2"|intcomma }}</p>
                         </div>
+                    </div>
+                    <div>
+                        <p class="card-text">UgX: {{ total_sales_today|floatformat:"2"|intcomma }}</p>
                     </div>
                 </div>
             </div>
@@ -150,14 +153,16 @@
 
         <!-- Card for Total Sales This Week -->
         <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
+            <div class="card bg-info text-white h-100 d-flex flex-column">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-calendar-week card-icon"></i>
                         <div>
                             <h5 class="card-title">Sales This Week</h5>
-                            <p class="card-text">UgX: {{ total_sales_week|floatformat:"2"|intcomma }}</p>
                         </div>
+                    </div>
+                    <div>
+                        <p class="card-text">UgX: {{ total_sales_week|floatformat:"2"|intcomma }}</p>
                     </div>
                 </div>
             </div>
@@ -165,14 +170,16 @@
 
         <!-- Card for Total Sales This Month -->
         <div class="col-md-3 mb-3">
-            <div class="card bg-warning text-white">
+            <div class="card bg-warning text-white h-100 d-flex flex-column">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-calendar-month card-icon"></i>
                         <div>
                             <h5 class="card-title">Sales This Month</h5>
-                            <p class="card-text">UgX: {{ total_sales_month|floatformat:"2"|intcomma }}</p>
                         </div>
+                    </div>
+                    <div>
+                        <p class="card-text">UgX: {{ total_sales_month|floatformat:"2"|intcomma }}</p>
                     </div>
                 </div>
             </div>
@@ -180,20 +187,21 @@
 
         <!-- Card for Stock Balance -->
         <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
+            <div class="card bg-primary text-white h-100 d-flex flex-column">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-cube card-icon"></i>
                         <div>
                             <h5 class="card-title">Stock Balance</h5>
-                            <p class="card-text">{{ total_stock }}</p>
                         </div>
+                    </div>
+                    <div>
+                        <p class="card-text">{{ total_stock }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 
     <!-- Year Earnings Overview Chart -->
     <div class="row">

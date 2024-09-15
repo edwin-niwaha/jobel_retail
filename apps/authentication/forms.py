@@ -1,8 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
+from django.db import transaction
 
 from .models import Contact, Profile
+from apps.customers.models import Customer
 
 
 # =================================== Register  ===================================
@@ -82,6 +84,18 @@ class RegisterForm(UserCreationForm):
             "password1",
             "password2",
         ]
+
+    @transaction.atomic
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data.get("email")
+        user.first_name = self.cleaned_data.get("first_name")
+        user.last_name = self.cleaned_data.get("last_name")
+        if commit:
+            user.save()
+            # Create a Customer instance
+            Customer.objects.create(user=user)
+        return user
 
 
 # =================================== Login  ===================================

@@ -9,55 +9,71 @@
             <a href="{% url 'products:products_add' %}" class="btn btn-success font-weight-bold">
                 <i class="mdi mdi-plus mr-2"></i> Add Product
             </a>
-            <button title="Print" type="button" class="btn btn-sm ml-3 btn-success" onclick="printDiv('printMe')">
+            <a href="{% url 'products:update_product_image' %}" class="btn btn-success font-weight-bold ml-2">
+                <i class="mdi mdi-plus mr-2"></i> Add Image
+            </a>
+            <button title="Print" type="button" class="btn btn-sm ml-2 btn-success" onclick="printDiv('printMe')">
                 <i class="mdi mdi-printer btn-icon-prepend"></i>
             </button>
         </div>
     </div>
+
     <div id="printMe" class="tab-pane show active">
         <div class="alert alert-danger w-100">
             <h6 class="m-0 font-weight-bold text-primary">Products</h6>
         </div>
+
         <!-- DataTable -->
         <div class="table-responsive">
             <table class="my-table" id="dataTable">
                 <thead>
                     <tr>
                         <th>#</th>
-                        {% comment %} <th>SKU</th> {% endcomment %}
-                        <th style="width:20%">Product</th>
-                        <th style="width:15%">Category</th>
-                        <th style="width:15%">Gender</th>
-                        <th style="width:15%">Type</th>
-                        <th style="width:15%">Stock</th>
-                        <th class="text-center" style="width:15%">Unit Cost</th>
-                        <th class="text-center" style="width:15%">Unit Price</th>
-                        <th class="text-center" style="width:10%">Status</th>
-                        <th colspan="2" class="text-center" style="width:10%">Actions</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Gender</th>
+                        <th>Type</th>
+                        <th>Stock</th>
+                        <th class="text-center">Unit Cost</th>
+                        <th class="text-center">Unit Price</th>
+                        <th class="text-center">Status</th>
+                        <th colspan="3" class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for p in products %}
+                    {% for product in products %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        {% comment %} <td>{{ p.prefixed_id }}</td> {% endcomment %}
-                        <td>{{ p.name }}</td>
-                        <td>{{ p.category }}</td>
-                        <td>{{ p.gender }}</td>
-                        <td>{{ p.product_type }}</td>
-                        <td class="text-right">{{ p.stock }}</td>
-                        <td class="text-right">{{ p.cost|floatformat:"2"|intcomma }}</td>
-                        <td class="text-right">{{ p.price|floatformat:"2"|intcomma }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.category }}</td>
+                        <td>{{ product.gender }}</td>
+                        <td>{{ product.product_type }}</td>
+                        <td class="text-right">{{ product.stock }}</td>
+
+                        <!-- Calculate total cost and price for all volumes of a product -->
+                        {% with product.product_volumes.all as volumes %}
+                        <td class="text-right">
+                            {% with volumes|first as first_volume %}
+                            {{ first_volume.cost|floatformat:"2"|intcomma }}
+                            {% endwith %}
+                        </td>
+                        <td class="text-right">
+                            {% with volumes|first as first_volume %}
+                            {{ first_volume.price|floatformat:"2"|intcomma }}
+                            {% endwith %}
+                        </td>
+                        {% endwith %}
+
                         <td class="text-center">
-                            {% if p.status == "ACTIVE" %}
-                            <span class="badge badge-success" style="font-size:0.8em;">{{ p.status }}</span>
-                            {% elif p.status == "INACTIVE" %}
-                            <span class="badge badge-danger" style="font-size:0.8em;">{{ p.status }}</span>
+                            {% if product.status == "ACTIVE" %}
+                            <span class="badge badge-success" style="font-size:0.8em;">{{ product.status }}</span>
+                            {% elif product.status == "INACTIVE" %}
+                            <span class="badge badge-danger" style="font-size:0.8em;">{{ product.status }}</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             <!-- Update button -->
-                            <a href="{% url 'products:products_update' p.id %}" class="text-decoration-none"
+                            <a href="{% url 'products:products_update' product.id %}" class="text-decoration-none"
                                 onclick="return confirm('Are you sure you want to update this record?');">
                                 <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
                                     title="Update product">
@@ -65,33 +81,43 @@
                                 </button>
                             </a>
                         </td>
+                        <td class="text-center">
+                            <!-- Add volume button -->
+                            <a href="{% url 'products:product_volume_list' product.id %}" class="text-decoration-none">
+                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="tooltip"
+                                    title="Manage Volumes">
+                                    <i class="bi bi-box"></i>
+                                </button>
+                            </a>
+                        </td>
                         {% if user.profile.role == 'administrator' or user.profile.role == 'manager' %}
                         <td class="text-center print-hide">
                             <!-- Delete button and modal -->
                             <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                                data-bs-target="#deleteModal{{ p.id }}" title="Delete product">
+                                data-bs-target="#deleteModal{{ product.id }}" title="Delete product">
                                 <i class="bi bi-trash"></i>
                             </button>
 
                             <!-- Delete Modal -->
-                            <div class="modal fade" id="deleteModal{{ p.id }}" tabindex="-1"
-                                aria-labelledby="deleteModalLabel{{ p.id }}" aria-hidden="true">
+                            <div class="modal fade" id="deleteModal{{ product.id }}" tabindex="-1"
+                                aria-labelledby="deleteModalLabel{{ product.id }}" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="deleteModalLabel{{ p.id }}">Delete Product</h5>
+                                            <h5 class="modal-title" id="deleteModalLabel{{ product.id }}">Delete Product
+                                            </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                 aria-label="Close">X
                                             </button>
                                         </div>
                                         <div class="modal-body">
-                                            Are you sure you want to delete the product: <h3>{{ p.name }}?</h3>
+                                            Are you sure you want to delete the product: <h3>{{ product.name }}?</h3>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                                 Cancel
                                             </button>
-                                            <a href="{% url 'products:products_delete' p.id %}"
+                                            <a href="{% url 'products:products_delete' product.id %}"
                                                 class="text-decoration-none">
                                                 <button type="button" class="btn btn-danger">Delete</button>
                                             </a>
@@ -108,7 +134,7 @@
                     <tr>
                         <td colspan="5" class="text-right"><strong>Total</strong></td>
                         <td class="text-right">
-                            <strong>{{ total_stock}}</strong>
+                            <strong>{{ total_stock }}</strong>
                         </td>
                         <td class="text-right">
                             <strong>{{ total_cost|floatformat:"2"|intcomma }}</strong>

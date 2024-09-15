@@ -1,0 +1,22 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Order Details</h1>
+    <p><strong>Order ID:</strong> {{ order.id }}</p>
+    <p><strong>Created At:</strong> {{ order.created_at }}</p>
+    <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+    <ul>
+        {% for item in order.cart.items.all %}
+        <li>{{ item.product.name }} - {{ item.quantity }} @ UgX
+            {{ item.product.volume.price|floatformat:"2"|intcomma }}
+            each
+            (Total: UgX {{ item.get_total_price|floatformat:"2"|intcomma }})</li>
+        {% endfor %}
+    </ul>
+    <p><strong>Total Amount:</strong> UgX {{ order.get_total_amount|floatformat:"2"|intcomma }}</p>
+    <a href="{% url 'orders:process_order' order.id %}" class="btn btn-success">Process Order</a>
+</div>
+{% endblock %}

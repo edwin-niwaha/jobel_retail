@@ -20,7 +20,7 @@
     <div class="row">
         <div class="card col-md-12">
             <div class="card-body">
-                <form action="{% url 'products:products_add' %}" method="post">
+                <form action="{% url 'products:products_add' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <!--  -->
                     {{ form|crispy }}

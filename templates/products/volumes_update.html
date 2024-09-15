@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <!--Go back-->
+    <div class="row ml-0 mb-3">
+        <a href="{% url 'products:product_volume_list' product.id %}">
+            <button type="button" class="btn btn-info font-weight-bold">
+                <i class="fas fa-long-arrow-alt-left mr-2"></i>
+                Back to Volumes
+            </button>
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="card col-md-12">
+            <div class="card-body">
+                <h2>Update Volume for {{ product.name }}</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <!--  -->
+                    {{ form|crispy }}
+                    <div class="form-group mt-4 mb-0">
+                        <button type="submit" class="col-md-12 btn btn-dark"
+                            onclick="return confirm('Are you sure you want to proceed?') && validateForm()">
+                            Update Volume</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}

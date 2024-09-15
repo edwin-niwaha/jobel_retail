@@ -7,4 +7,5 @@ class AuthenticationConfig(AppConfig):
 
     def ready(self):
         # import apps.authentication.signals  # noqa
+
         pass

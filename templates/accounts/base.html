@@ -16,6 +16,13 @@
   <!-- Add custom stylesheets -->
   <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css" />
   <link href="{% static 'css/users.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'css/carousel.css' %}" rel="stylesheet" type="text/css" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Material Design Icons -->
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/6.5.95/css/materialdesignicons.min.css">
 
   <!-- Font Awesome icons -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
@@ -38,7 +45,7 @@
   <!-- =============== Messages End ================= -->
 
   <!-- Content -->
-  <div class="container">
+  <div class="container-fluid">
     {% block content %}{% endblock content %}
   </div>
 
@@ -62,11 +69,20 @@
   <!-- A plugin for password show/hide  -->
   <script src="https://unpkg.com/bootstrap-show-password@1.2.1/dist/bootstrap-show-password.min.js"></script>
 
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
   <!-- Additional scripts -->
   {% block scripts %}
   <script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+
   <!--disabled btn-->
   <script type="text/javascript" src="{% static 'js/disabled_btn.js' %}"></script>
+  <script src="{% static 'js/search.js' %}"></script>
+
+  <!-- JavaScript for Quantity Control -->
+  <script src="{% static 'js/cart.js' %}"></script>
 
   {% endblock scripts %}
 </body>

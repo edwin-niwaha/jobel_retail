@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Checkout</title>
+</head>
+
+<body>
+    <h1>Checkout</h1>
+    <form method="post" action="{% url 'place_order' %}">
+        {% csrf_token %}
+        <h2>Shipping Information</h2>
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" required>
+        <label for="zip">Zip Code:</label>
+        <input type="text" id="zip" name="zip" required>
+        <h2>Payment Information</h2>
+        <label for="card_number">Card Number:</label>
+        <input type="text" id="card_number" name="card_number" required>
+        <label for="expiry_date">Expiry Date:</label>
+        <input type="text" id="expiry_date" name="expiry_date" required>
+        <button type="submit">Place Order</button>
+    </form>
+</body>
+
+</html>

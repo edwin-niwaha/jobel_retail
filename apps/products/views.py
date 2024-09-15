@@ -1,13 +1,22 @@
 from django.contrib import messages
+from django.db.models import Sum, F
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.db.models import F
 
 # Import models and forms
-from .models import Category, Product
-from .forms import CategoryForm, ProductForm
+from .models import Category, Volume, ProductVolume, Product, ProductImage
+from .forms import (
+    CategoryForm,
+    VolumeForm,
+    ProductVolumeForm,
+    ProductForm,
+    ProductImageForm,
+)
 
 
 # Import custom decorators
@@ -152,14 +161,140 @@ def categories_delete_view(request, category_id):
         return redirect("products:categories_list")
 
 
+# # =================================== volumes(ML) add view ===================================
+@login_required
+@admin_or_manager_required
+@transaction.atomic
+def volume_add_view(request):
+    if request.method == "POST":
+        form = VolumeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, "Volume added successfully.", extra_tags="bg-success"
+            )
+            return redirect("products:volume_add")  # Redirect to a list or detail view
+    else:
+        form = VolumeForm()
+
+    return render(request, "products/volume_ml.html", {"form": form, "action": "Add"})
+
+
+# # =================================== volumes(ML) update view ===================================
+@login_required
+@admin_or_manager_required
+@transaction.atomic
+def volume_update_view(request, pk):
+    volume = get_object_or_404(Volume, pk=pk)
+    if request.method == "POST":
+        form = VolumeForm(request.POST, instance=volume)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Volume updated successfully.")
+            return redirect(
+                "products:product_volume_list"
+            )  # Redirect to a list or detail view
+    else:
+        form = VolumeForm(instance=volume)
+
+    return render(
+        request, "products/volume_form.html", {"form": form, "action": "Update"}
+    )
+
+
+# =================================== Product volumes view ===================================
+@login_required
+@admin_or_manager_or_staff_required
+def product_volume_list_view(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    product_volumes = ProductVolume.objects.filter(product=product)
+
+    return render(
+        request,
+        "products/volumes.html",
+        {
+            "product": product,
+            "product_volumes": product_volumes,
+        },
+    )
+
+
+# =================================== Product volumes add view ===================================
+@login_required
+@admin_or_manager_or_staff_required
+@transaction.atomic
+def add_product_volume_view(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    if request.method == "POST":
+        form = ProductVolumeForm(request.POST, product=product)
+        if form.is_valid():
+            form.save()  # Save will use the product passed in the form
+            return redirect("products:product_volume_list", product_id=product.id)
+    else:
+        form = ProductVolumeForm(product=product)
+
+    return render(
+        request, "products/volumes_add.html", {"form": form, "product": product}
+    )
+
+
+# # =================================== Product volumes update view ===================================
+@login_required
+@admin_or_manager_or_staff_required
+def update_product_volume_view(request, product_id, volume_id):
+    # Fetch the related product and product volume
+    product = get_object_or_404(Product, id=product_id)
+    product_volume = get_object_or_404(ProductVolume, id=volume_id, product=product)
+
+    # Handle form submission
+    if request.method == "POST":
+        form = ProductVolumeForm(request.POST, instance=product_volume, product=product)
+        if form.is_valid():
+            form.save()
+            return redirect("products:product_volume_list", product_id=product.id)
+    else:
+        # Pre-fill the form with existing product volume data
+        form = ProductVolumeForm(instance=product_volume, product=product)
+
+    # Render the update form template
+    return render(
+        request, "products/volumes_update.html", {"form": form, "product": product}
+    )
+
+
+# ================================ Product delete volume =================================
+@login_required
+@admin_required
+@transaction.atomic
+def delete_product_volume_view(request, volume_id):
+    product_volume = get_object_or_404(ProductVolume, id=volume_id)
+    product_id = product_volume.product.id
+    product_volume.delete()
+    return redirect("products:product_volume_list", product_id=product_id)
+
+
 # =================================== produts list view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def products_list_view(request):
     products = Product.objects.all()
-    total_price = sum(product.price for product in products)
-    total_cost = sum(product.cost for product in products)
-    total_stock = sum(product.stock for product in products)
+    product_volumes = ProductVolume.objects.all()
+    total_price = (
+        product_volumes.aggregate(total_price=Sum(F("price") * F("product__stock")))[
+            "total_price"
+        ]
+        or 0
+    )
+    total_cost = (
+        product_volumes.aggregate(total_cost=Sum(F("cost") * F("product__stock")))[
+            "total_cost"
+        ]
+        or 0
+    )
+
+    # Calculate total stock
+    total_stock = products.aggregate(total_stock=Sum("stock"))["total_stock"] or 0
 
     context = {
         "active_icon": "products",
@@ -167,7 +302,7 @@ def products_list_view(request):
         "total_price": total_price,
         "total_cost": total_cost,
         "total_stock": total_stock,
-        "table_title": "Poducts",
+        "table_title": "Products",
     }
 
     return render(request, "products/products.html", context=context)
@@ -303,14 +438,9 @@ def products_delete_view(request, product_id):
         return redirect("products:products_list")
 
 
-# =================================== Products Detail ===================================
-def product_detail(request, id):
-    product = get_object_or_404(Product, id=id)
-    context = {"product": product}
-    return render(request, "products/products.html", context)
-
-
 # =================================== Stock alerts view ===================================
+@login_required
+@admin_or_manager_or_staff_required
 def stock_alerts_view(request):
     # Fetch all products
     products = Product.objects.all()
@@ -325,3 +455,100 @@ def stock_alerts_view(request):
     }
 
     return render(request, "products/stock_alerts.html", context)
+
+
+# =================================== Upload Product Image ===================================
+@login_required
+@admin_or_manager_or_staff_required
+@transaction.atomic
+def update_product_image(request):
+    if request.method == "POST":
+        form = ProductImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            product_id = request.POST.get("id")
+            product_image = get_object_or_404(Product, id=product_id)
+
+            # Save the new product image without committing
+            new_picture = form.save(commit=False)
+            new_picture.product = product_image
+            new_picture.is_default = True  # Assuming is_current means default image
+            new_picture.save()
+
+            # Update product's profile image
+            product_image.image = new_picture.image
+            product_image.save()
+
+            messages.success(
+                request, "Product image updated successfully!", extra_tags="bg-success"
+            )
+            return redirect("products:update_product_image")
+        else:
+            messages.error(request, "Form is invalid.", extra_tags="bg-danger")
+    else:
+        form = ProductImageForm()
+
+    # Fetch all products
+    products = Product.objects.all().order_by("id")
+
+    return render(
+        request,
+        "products/product_image_add.html",
+        {
+            "form": form,
+            "form_name": "Upload Product Image",
+            "products": products,
+        },
+    )
+
+
+# =================================== View Product Image ===================================
+@login_required
+@admin_or_manager_or_staff_required
+def product_images(request):
+    products = Product.objects.all().order_by("id")
+
+    if request.method == "POST":
+        product_id = request.POST.get("id")
+
+        if product_id:
+            selected_product = get_object_or_404(Product, id=product_id)
+            # Fetch all images related to the product
+            image_fetched = ProductImage.objects.filter(product_id=product_id)
+
+            if not image_fetched.exists():
+                messages.error(
+                    request,
+                    "No images found for the selected product.",
+                    extra_tags="bg-warning",
+                )
+
+            return render(
+                request,
+                "products/product_images.html",
+                {
+                    "table_title": "Product Images",
+                    "products": products,
+                    "selected_product": selected_product,  # Pass the selected product
+                    "product_image_fetched": image_fetched,  # Pass the fetched images
+                },
+            )
+        else:
+            messages.error(request, "No product selected.", extra_tags="bg-danger")
+
+    # Handle GET request or fallback if no product is selected
+    return render(
+        request,
+        "products/product_images.html",
+        {"table_title": "Product Image", "products": products},
+    )
+
+
+# =================================== Delete Product Image ===================================
+@login_required
+@admin_or_manager_required
+@transaction.atomic
+def delete_product_image(request, pk):
+    records = ProductImage.objects.get(id=pk)
+    records.delete()
+    messages.info(request, "Record deleted successfully!", extra_tags="bg-danger")
+    return HttpResponseRedirect(reverse("products:product_images"))

@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from datetime import date, timedelta
 from django.db.models.functions import ExtractYear
 from django.utils.timezone import now
-from django.db.models.functions import TruncMonth
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, FloatField, F
 from django.db.models.functions import Coalesce
@@ -20,8 +19,34 @@ from apps.authentication.decorators import (
 
 
 # =================================== Home User view  ===================================
-def home(request):
-    return render(request, "accounts/home.html")
+def index(request):
+    # Fetch all products and prefetch associated images
+    products = Product.objects.prefetch_related("images").filter(status="ACTIVE")
+
+    # Prepare the products with their images
+    products_with_images = []
+    for product in products:
+        # Fetch default image first if available
+        images = product.images.filter(is_default=True)
+        if not images.exists():
+            # If no default image, fetch all images
+            images = product.images.all()
+        products_with_images.append(
+            {
+                "product": product,
+                "images": images,
+            }
+        )
+
+    # Pass the data to the template
+    return render(
+        request,
+        "index.html",
+        {
+            "products_with_images": products_with_images,
+            "user": request.user,
+        },
+    )
 
 
 def get_total_sales_for_period(start_date, end_date):

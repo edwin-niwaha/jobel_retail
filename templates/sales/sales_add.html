@@ -34,7 +34,7 @@
                             <select class="form-control" name="searchbox_products" id="searchbox_products">
                                 <option value="" selected disabled hidden>Select a product</option>
                                 {% for product in products %}
-                                <option value="{{ product.id }}" data-price="{{ product.price }}"
+                                <option value="{{ product.id }}" data-price="{{ product.volume.price }}"
                                     data-name="{{ product.name }}">{{ product.name }}</option>
                                 {% endfor %}
                             </select>
@@ -112,7 +112,9 @@
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="btn btn-success font-weight-bold">Create Sale</button>
+                        <button type="submit" class="btn btn-success font-weight-bold"
+                            onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Create
+                            Sale</button>
                     </div>
                 </div>
             </div>

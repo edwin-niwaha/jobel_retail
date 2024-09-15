@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Create new Volume and print button -->
+    <div class="row mb-3">
+        <div class="col">
+            <a href="{% url 'products:products_list' %}">
+                <button type="button" class="btn btn-info font-weight-bold">
+                    <i class="mdi mdi-arrow-left-bold mr-2"></i>
+                    Back to Products
+                </button>
+            </a>
+            <a href="{% url 'products:add_product_volume' product.id %}" class="btn btn-success ml-3 font-weight-bold">
+                <i class="mdi mdi-plus mr-2"></i> Add Volume & Price
+            </a>
+            <button title="Print" type="button" class="btn btn-sm ml-3 btn-success" onclick="printDiv('printMe')">
+                <i class="mdi mdi-printer btn-icon-prepend"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- DataTable -->
+    <div id="printMe" class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h2 class="m-0 font-weight-bold text-primary">Volumes for {{ product.name }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Volume (ML)</th>
+                            <th>Cost Price</th>
+                            <th>Selling Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product_volume in product_volumes %}
+                        <tr>
+                            <td>{{ product_volume.volume.ml }} ML</td>
+                            <td>{{ product_volume.cost }}</td>
+                            <td>{{ product_volume.price }}</td>
+                            <td>
+                                <a href="{% url 'products:update_product_volume' product.id product_volume.id %}"
+                                    class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'products:delete_product_volume' product_volume.id %}"
+                                    class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">No volumes added yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

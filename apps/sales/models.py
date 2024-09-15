@@ -2,6 +2,7 @@ from django.db import models
 import django.utils.timezone
 from apps.customers.models import Customer
 from apps.products.models import Product
+from apps.orders.models import Order
 
 
 PAYMENT_METHOD_CHOICES = [
@@ -17,9 +18,16 @@ PAYMENT_METHOD_CHOICES = [
 
 # =================================== Sale model ===================================
 class Sale(models.Model):
+    order = models.ForeignKey(
+        Order, related_name="sales", on_delete=models.SET_NULL, null=True, blank=True
+    )
     date_added = models.DateTimeField(default=django.utils.timezone.now)
-    trans_date = models.DateField(verbose_name="Transaction Date")
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    trans_date = models.DateField(verbose_name="Receipt Date")
+    receipt_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    # customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(
+        Customer, related_name="sales", on_delete=models.SET_NULL, null=True, blank=True
+    )
     sub_total = models.FloatField(default=0)
     grand_total = models.FloatField(default=0)
     tax_amount = models.FloatField(default=0)
@@ -31,6 +39,8 @@ class Sale(models.Model):
         choices=PAYMENT_METHOD_CHOICES,
         default="CASH",
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created at")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")
 
     class Meta:
         db_table = "Sales"
@@ -57,6 +67,8 @@ class SaleDetail(models.Model):
     price = models.FloatField()
     quantity = models.IntegerField()
     total_detail = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created at")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")
 
     class Meta:
         db_table = "SaleDetails"

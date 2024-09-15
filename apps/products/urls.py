@@ -1,33 +1,64 @@
+# urls.py
 from django.urls import path
-
 from . import views
 
 app_name = "products"
+
 urlpatterns = [
-    # List categories
-    path("categories", views.categories_list_view, name="categories_list"),
-    # Add category
-    path("categories/add", views.categories_add_view, name="categories_add"),
-    # Update category
+    # ** Category URLs **
+    path("categories/", views.categories_list_view, name="categories_list"),
+    path("categories/add/", views.categories_add_view, name="categories_add"),
     path(
-        "categories/update/<str:category_id>",
+        "categories/update/<str:category_id>/",
         views.categories_update_view,
         name="categories_update",
     ),
-    # Delete category
     path(
-        "categories/delete/<str:category_id>",
+        "categories/delete/<str:category_id>/",
         views.categories_delete_view,
         name="categories_delete",
     ),
-    # List products
+    # ** Volume URLs **
+    path("volume/add/", views.volume_add_view, name="volume_add"),
+    path("volume/update/<int:pk>/", views.volume_update_view, name="volume_update"),
+    # ** Product Volume URLs **
+    path(
+        "volume/add/<int:product_id>/",
+        views.add_product_volume_view,
+        name="add_product_volume",
+    ),
+    path(
+        "product_volume/update/<int:product_id>/<int:volume_id>/",
+        views.update_product_volume_view,
+        name="update_product_volume",
+    ),
+    path(
+        "products/<int:product_id>/volumes/",
+        views.product_volume_list_view,
+        name="product_volume_list",
+    ),
+    path(
+        "volumes/<int:volume_id>/delete/",
+        views.delete_product_volume_view,
+        name="delete_product_volume",
+    ),
+    # ** Product URLs **
     path("", views.products_list_view, name="products_list"),
-    # Add product
-    path("add", views.products_add_view, name="products_add"),
-    # Update product
-    path("update/<str:product_id>", views.products_update_view, name="products_update"),
-    # Delete product
-    path("delete/<str:product_id>", views.products_delete_view, name="products_delete"),
-    path("product/<int:id>/", views.product_detail, name="product_detail"),
+    path("add/", views.products_add_view, name="products_add"),
+    path(
+        "update/<str:product_id>/", views.products_update_view, name="products_update"
+    ),
+    path(
+        "delete/<str:product_id>/", views.products_delete_view, name="products_delete"
+    ),
+    # ** Product Image URLs **
+    path("product-image/", views.update_product_image, name="update_product_image"),
+    path("product-image/list/", views.product_images, name="product_images"),
+    path(
+        "product-image/delete/<int:pk>/",
+        views.delete_product_image,
+        name="delete_product_image",
+    ),
+    # ** Stock Alerts **
     path("stock-alerts/", views.stock_alerts_view, name="stock_alerts"),
 ]
