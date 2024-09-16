@@ -12,7 +12,7 @@
         <div id="carouselExampleCaptions" class="carousel slide" data-ride="carousel" data-interval="5000">
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <img src="{% static 'images/_perfume.png' %}" class="d-block w-100" alt="Slide 1">
+              <img src="{% static 'images/1.png' %}" class="d-block w-100" alt="Slide 1">
               <div class="carousel-caption d-none d-md-block">
                 <h5 class="text-dark">Classic Elegance</h5>
                 <p class="text-dark">Eau de Parfum Classic Elegance</p>
@@ -108,11 +108,11 @@
     </div>
   </div>
 
-  <!--products on sale-->
+  <!-- Products on Sale -->
   <div class="row" id="search_list">
     {% if products_with_images %}
     {% for product_info in products_with_images %}
-    {% with product=product_info.product images=product_info.images %}
+    {% with product=product_info.product images=product_info.images min_price=product_info.min_price max_price=product_info.max_price %}
     <div class="col-md-4 mb-4 product-item">
       <div class="card h-100">
         <div id="carousel-{{ product.id }}" class="carousel slide" data-ride="carousel">
@@ -121,7 +121,7 @@
             {% for image in images %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
               <a href="{% url 'orders:product_detail' product.id %}">
-                <img title="View image details" src="{{ image.image.url }}" class="d-block w-100 mx-auto"
+                <img src="{{ image.image.url }}" class="d-block w-100 mx-auto"
                   style="max-height: 200px; object-fit: contain;" alt="{{ product.name }}">
               </a>
             </div>
@@ -145,16 +145,23 @@
           </a>
         </div>
         <div class="card-body d-flex flex-column align-items-center text-center">
-          <h5 class="card-title" style="text-transform: uppercase;">{{ product.name }}</h5>
+          <h5 class="card-title text-uppercase">{{ product.name }}</h5>
           <p class="card-text">{{ product.category }} - {{ product.product_type }} - {{ product.gender }}</p>
-          <p class="card-text"><strong>Price:</strong> UgX {{ product.volume.price|floatformat:"2"|intcomma }}</p>
+          <div class="card-text">
+            <strong>Price:</strong>
+            {% if min_price and max_price %}
+            UgX {{ min_price|floatformat:"2"|intcomma }} - UgX {{ max_price|floatformat:"2"|intcomma }}
+            {% else %}
+            Price not available
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
     {% endwith %}
     {% endfor %}
     {% else %}
-    <p>No products available.</p>
+    <p class="col-12">No products available.</p>
     {% endif %}
   </div>
 

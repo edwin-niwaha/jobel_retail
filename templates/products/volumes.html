@@ -32,18 +32,20 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Volume (ML)</th>
-                            <th>Cost Price</th>
-                            <th>Selling Price</th>
+                            <th class="text-right">Cost Price</th>
+                            <th class="text-right">Selling Price</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product_volume in product_volumes %}
                         <tr>
+                            <td>{{ forloop.counter }}</td>
                             <td>{{ product_volume.volume.ml }} ML</td>
-                            <td>{{ product_volume.cost }}</td>
-                            <td>{{ product_volume.price }}</td>
+                            <td class="text-right">{{ product_volume.cost|floatformat:"2"|intcomma  }}</td>
+                            <td class="text-right">{{ product_volume.price|floatformat:"2"|intcomma  }}</td>
                             <td>
                                 <a href="{% url 'products:update_product_volume' product.id product_volume.id %}"
                                     class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
@@ -57,6 +59,14 @@
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th>{{ total_ml }} ML</th>
+                            <th class="text-right">{{ total_cost|floatformat:"2"|intcomma  }}</th>
+                            <th class="text-right">{{ total_price|floatformat:"2"|intcomma  }}</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>

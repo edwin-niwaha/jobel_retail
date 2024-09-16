@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import IntegrityError
 from django.db.models import Sum, F
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -209,14 +210,20 @@ def product_volume_list_view(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product_volumes = ProductVolume.objects.filter(product=product)
 
-    return render(
-        request,
-        "products/volumes.html",
-        {
-            "product": product,
-            "product_volumes": product_volumes,
-        },
-    )
+    # Calculate totals
+    total_ml = sum(volume.volume.ml for volume in product_volumes)
+    total_cost = sum(volume.cost for volume in product_volumes)
+    total_price = sum(volume.price for volume in product_volumes)
+
+    context = {
+        "product": product,
+        "product_volumes": product_volumes,
+        "total_ml": total_ml,
+        "total_cost": total_cost,
+        "total_price": total_price,
+    }
+
+    return render(request, "products/volumes.html", context)
 
 
 # =================================== Product volumes add view ===================================
@@ -229,8 +236,24 @@ def add_product_volume_view(request, product_id):
     if request.method == "POST":
         form = ProductVolumeForm(request.POST, product=product)
         if form.is_valid():
-            form.save()  # Save will use the product passed in the form
-            return redirect("products:product_volume_list", product_id=product.id)
+            volume_id = form.cleaned_data[
+                "volume"
+            ].id  # assuming the volume field is called 'volume'
+            if ProductVolume.objects.filter(
+                product=product, volume_id=volume_id
+            ).exists():
+                form.add_error(
+                    None, "Oops! This volume is already associated with the product."
+                )
+            else:
+                try:
+                    form.save()  # Save will use the product passed in the form
+                    messages.success(request, "Volume added successfully!")
+                    return redirect(
+                        "products:product_volume_list", product_id=product.id
+                    )
+                except IntegrityError:
+                    form.add_error(None, "An unexpected error occurred while saving.")
     else:
         form = ProductVolumeForm(product=product)
 
@@ -272,6 +295,39 @@ def delete_product_volume_view(request, volume_id):
     product_id = product_volume.product.id
     product_volume.delete()
     return redirect("products:product_volume_list", product_id=product_id)
+
+
+# def pts_list(request):
+#     # Prefetch related ProductVolume and ProductImage objects
+#     products = Product.objects.prefetch_related("productvolume_set", "images").all()
+#     return render(request, "products/pts.html", {"products": products})
+
+
+def pts_list(request):
+    products = Product.objects.prefetch_related("productvolume_set", "images").all()
+
+    # Calculate totals
+    total_stock = products.aggregate(Sum("stock"))["stock__sum"] or 0
+
+    total_ml = (
+        products.aggregate(total_ml=Sum("productvolume__volume__ml"))["total_ml"] or 0
+    )
+    total_cost = (
+        products.aggregate(total_cost=Sum("productvolume__cost"))["total_cost"] or 0
+    )
+    total_price = (
+        products.aggregate(total_price=Sum("productvolume__price"))["total_price"] or 0
+    )
+
+    context = {
+        "products": products,
+        "total_stock": total_stock,
+        "total_ml": total_ml,
+        "total_cost": total_cost,
+        "total_price": total_price,
+    }
+
+    return render(request, "products/pts.html", context)
 
 
 # =================================== produts list view ===================================

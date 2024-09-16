@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, FloatField, F
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
+from django.db.models import Min, Max
 
 from apps.products.models import Product, Category
 from apps.sales.models import Sale
@@ -20,10 +21,12 @@ from apps.authentication.decorators import (
 
 # =================================== Home User view  ===================================
 def index(request):
-    # Fetch all products and prefetch associated images
-    products = Product.objects.prefetch_related("images").filter(status="ACTIVE")
+    # Fetch all active products and prefetch associated images and volumes
+    products = Product.objects.prefetch_related("images", "productvolume_set").filter(
+        status="ACTIVE"
+    )
 
-    # Prepare the products with their images
+    # Prepare the products with their images, volumes, and price ranges
     products_with_images = []
     for product in products:
         # Fetch default image first if available
@@ -31,10 +34,21 @@ def index(request):
         if not images.exists():
             # If no default image, fetch all images
             images = product.images.all()
+
+        # Fetch volumes and calculate price range
+        volumes = product.productvolume_set.all()
+        if volumes.exists():
+            min_price = volumes.aggregate(Min("price"))["price__min"]
+            max_price = volumes.aggregate(Max("price"))["price__max"]
+        else:
+            min_price = max_price = None
+
         products_with_images.append(
             {
                 "product": product,
                 "images": images,
+                "min_price": min_price,
+                "max_price": max_price,
             }
         )
 

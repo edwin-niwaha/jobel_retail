@@ -43,6 +43,7 @@ urlpatterns = [
         name="delete_product_volume",
     ),
     # ** Product URLs **
+    path("all", views.pts_list, name="pts"),
     path("", views.products_list_view, name="products_list"),
     path("add/", views.products_add_view, name="products_add"),
     path(

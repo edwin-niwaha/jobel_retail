@@ -4,40 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Order
 from .models import Cart, CartItem, Order
-from apps.products.models import Product, Volume, ProductVolume
+from apps.products.models import Product, ProductVolume
 from django.core.exceptions import MultipleObjectsReturned
+from .forms import CheckoutForm
 
-
-# from .forms import OrderForm, SaleProcessingForm
 # from apps.sales.models import Sale, SaleDetail
 
 
 # =================================== Products Detail ===================================
-# @login_required
-# def product_detail(request, id):
-#     product = get_object_or_404(Product, id=id)
-
-#     # Retrieve or create a cart for the logged-in user
-#     cart, created = Cart.objects.get_or_create(user=request.user)
-
-#     # Calculate the total number of items in the cart
-#     cart_items = CartItem.objects.filter(cart=cart)
-#     cart_count = sum(item.quantity for item in cart_items)
-
-#     # Fetch the volume associated with the product
-#     # volume = product.volume  # Access the volume directly
-#     volumes = Volume.objects.all()
-
-#     context = {
-#         "product": product,
-#         "volume": volumes,  # Pass volume to the template
-#         "cart_count": cart_count,
-#     }
-
-#     return render(request, "orders/product_detail.html", context)
-
-
-# Example of updated view
 @login_required
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
@@ -45,12 +19,12 @@ def product_detail(request, id):
     cart_items = CartItem.objects.filter(cart=cart)
     cart_count = sum(item.quantity for item in cart_items)
 
-    # Fetch all volumes and pass them to the template
-    volumes = Volume.objects.all()
+    # Fetch volumes specific to this product
+    product_volumes = ProductVolume.objects.filter(product=product)
 
     context = {
         "product": product,
-        "volumes": volumes,  # Make sure this is the correct name and is passed properly
+        "product_volumes": product_volumes,  # Pass product-specific volumes to the template
         "cart_count": cart_count,
     }
 
@@ -61,9 +35,16 @@ def product_detail(request, id):
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart, created = Cart.objects.get_or_create(user=request.user)
-    quantity = int(
-        request.POST.get("quantity", 1)
-    )  # Get quantity from POST data or default to 1
+    quantity = int(request.POST.get("quantity", 1))
+    volume_id = request.POST.get("volume_id")
+
+    # Validate the volume
+    if not volume_id:
+        messages.error(request, "Please select a product volume.")
+        return redirect("orders:product_detail", id=product_id)
+
+    # Fetch the selected volume
+    volume = get_object_or_404(ProductVolume, id=volume_id)
 
     if quantity <= 0:
         messages.add_message(
@@ -75,92 +56,96 @@ def add_to_cart(request, product_id):
         return redirect("orders:product_detail", id=product_id)
 
     try:
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        # Add volume to the CartItem creation or retrieval
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart, product=product, volume=volume
+        )
     except MultipleObjectsReturned:
         cart_item = CartItem.objects.filter(
-            cart=cart, product=product
-        ).first()  # Get the first item
+            cart=cart, product=product, volume=volume
+        ).first()
 
     if not created:
-        if quantity > 0:
-            cart_item.quantity += quantity
-            cart_item.save()
-            messages.add_message(
-                request,
-                messages.INFO,
-                f"Increased quantity of {product.name} to {cart_item.quantity} in your cart.",
-                extra_tags="bg-info text-white",
-            )
-        else:
-            cart_item.delete()
-            messages.add_message(
-                request,
-                messages.WARNING,
-                f"{product.name} has been removed from your cart.",
-                extra_tags="bg-warning text-dark",
-            )
+        cart_item.quantity += quantity
+        cart_item.save()
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Increased quantity of {product.name} ({volume.volume.ml} ML) to {cart_item.quantity} in your cart.",
+            extra_tags="bg-info text-white",
+        )
     else:
-        if quantity > 0:
-            cart_item.quantity = quantity
-            cart_item.save()
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                f"{product.name} has been added to your cart with quantity {quantity}.",
-                extra_tags="bg-success text-white",
-            )
-        else:
-            cart_item.delete()
-            messages.add_message(
-                request,
-                messages.WARNING,
-                f"{product.name} has been removed from your cart.",
-                extra_tags="bg-warning text-dark",
-            )
+        cart_item.quantity = quantity
+        cart_item.save()
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"{product.name} ({volume.volume.ml} ML) has been added to your cart with quantity {quantity}.",
+            extra_tags="bg-success text-white",
+        )
 
     return redirect("orders:product_detail", id=product_id)
 
 
 @login_required
-def remove_from_cart(request, item_id):
-    if request.method == "POST":
-        item = get_object_or_404(CartItem, id=item_id)
-        item.delete()
-    return redirect("orders:cart")
-
-
-@login_required
 def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
-    return render(request, "orders/cart.html", {"cart": cart})
+
+    total_price = sum(item.get_total_price() for item in cart.items.all())
+
+    context = {
+        "cart": cart,
+        "total_price": total_price,
+    }
+
+    return render(request, "orders/cart.html", context)
 
 
 @login_required
-def checkout(request):
-    cart = get_object_or_404(Cart, user=request.user)
-    if not cart.items.exists():
-        return redirect("orders:cart_view")  # Redirect to cart if empty
-    order = Order.objects.create(user=request.user, cart=cart)
-    cart.items.all().delete()  # Clear cart items
-    return redirect("orders:order_summary", order_id=order.id)
+def checkout_view(request):
+    try:
+        cart = Cart.objects.get(user=request.user)
+    except Cart.DoesNotExist:
+        messages.error(request, "Your cart is empty.")
+        return redirect(
+            "orders:cart_view"
+        )  # Redirect to cart view if cart does not exist
+
+    if request.method == "POST":
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            payment_method = form.cleaned_data["payment_method"]
+            total_amount = cart.get_total_price()
+
+            # Create an order
+            order = cart.checkout(
+                payment_method=payment_method, total_amount=total_amount
+            )
+
+            # Optionally, you can redirect to an order confirmation page
+            messages.success(
+                request,
+                f"Your order has been placed successfully! Order ID: {order.id}",
+            )
+            return redirect("orders:order_confirmation", order_id=order.id)
+
+    else:
+        form = CheckoutForm()
+
+    return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
 
+# ////////////////////////////
 @login_required
-def order_summary(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    return render(request, "orders/order_summary.html", {"order": order})
+def order_confirmation_view(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    return render(request, "orders/order_confirmation.html", {"order": order})
 
 
 @login_required
 def order_list(request):
     orders = Order.objects.all()
-    return render(request, "orders/order_list.html", {"orders": orders})
-
-
-@login_required
-def order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    return render(request, "orders/order_detail.html", {"order": order})
+    return render(request, "orders/orders.html", {"orders": orders})
 
 
 @login_required
