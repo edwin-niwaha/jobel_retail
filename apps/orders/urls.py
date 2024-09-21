@@ -14,6 +14,18 @@ urlpatterns = [
         name="order_confirmation",
     ),
     # orders
-    path("orders/", views.order_list, name="order_list"),
-    path("orders/<int:order_id>/process/", views.process_order, name="process_order"),
+    path(
+        "order-history/",
+        views.customer_order_history_view,
+        name="customer_order_history",
+    ),
+    path("cashier-orders/", views.cashier_orders_view, name="cashier_orders"),
+    path("order/<int:order_id>/", views.order_detail_view, name="order_detail_view"),
+    path(
+        "to-be-processed/",
+        views.orders_to_be_processed_view,
+        name="orders_to_be_processed",
+    ),
+    path("report/<int:order_id>/", views.order_report_view, name="order_report"),
+    path("process/<int:order_id>/", views.order_process_view, name="order_process"),
 ]

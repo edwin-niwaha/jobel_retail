@@ -41,7 +41,7 @@ class VolumeForm(forms.ModelForm):
 class ProductVolumeForm(forms.ModelForm):
     class Meta:
         model = ProductVolume
-        fields = ["volume", "price", "cost"]
+        fields = ["volume", "cost", "price"]
         widgets = {
             "volume": forms.Select(attrs={"class": "form-control"}),
         }

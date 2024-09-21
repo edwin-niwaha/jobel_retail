@@ -1,32 +1,66 @@
 from django import forms
-from .models import Order, ORDER_STATUS_CHOICES, PAYMENT_METHOD_CHOICES
+from .models import PAYMENT_METHOD_CHOICES, Order
 
 
 class CheckoutForm(forms.Form):
+    first_name = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "First Name",
+            }
+        ),
+    )
+    last_name = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Last Name (optional)",
+            }
+        ),
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Email (optional)",
+            }
+        ),
+    )
+    phone = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Phone Number",
+            }
+        ),
+    )
+    address = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Address",
+                "rows": 3,  # Making it a multi-line input
+            }
+        ),
+    )
     payment_method = forms.ChoiceField(
         choices=PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect
     )
 
 
-# class OrderForm(forms.ModelForm):
-#     class Meta:
-#         model = Order
-#         fields = ["shipping_address", "payment_method"]
-#         widgets = {
-#             "shipping_address": forms.Textarea(attrs={"class": "form-control"}),
-#             "payment_method": forms.Select(attrs={"class": "form-control"}),
-#         }
-#         labels = {
-#             "shipping_address": "Shipping Address",
-#             "payment_method": "Payment Method",
-#         }
-#         help_texts = {
-#             "shipping_address": "Please provide your shipping address.",
-#             "payment_method": "Please select your preferred payment method.",
-#         }
-#         error_messages = {
-#             "shipping_address": {"required": "Please enter your shipping address."},
-#             "payment_method": {
-#                 "required": "Please select your preferred payment method."
-#             },
-#         }
+class OrderStatusForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ["status"]
+        widgets = {
+            "status": forms.Select(attrs={"class": "form-control"}),
+        }

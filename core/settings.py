@@ -49,7 +49,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
 ]
 
-ROOT_URLCONF = "perpetual_pos.urls"
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
@@ -72,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "perpetual_pos.wsgi.application"
+WSGI_APPLICATION = "core.wsgi.application"
 
 # Database configuration
 DATABASES = {

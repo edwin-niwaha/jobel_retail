@@ -3,12 +3,11 @@ from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Order
-from .models import Cart, CartItem, Order
+from .models import Cart, CartItem, Order, OrderDetail
 from apps.products.models import Product, ProductVolume
 from django.core.exceptions import MultipleObjectsReturned
-from .forms import CheckoutForm
-
-# from apps.sales.models import Sale, SaleDetail
+from .forms import CheckoutForm, OrderStatusForm
+from apps.customers.models import Customer
 
 
 # =================================== Products Detail ===================================
@@ -109,7 +108,10 @@ def checkout_view(request):
         messages.error(request, "Your cart is empty.")
         return redirect(
             "orders:cart_view"
-        )  # Redirect to cart view if cart does not exist
+        )  # Redirect to cart view if the cart is empty
+
+    # Get or create a customer entry for the current user
+    customer, created = Customer.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
         form = CheckoutForm(request.POST)
@@ -117,12 +119,37 @@ def checkout_view(request):
             payment_method = form.cleaned_data["payment_method"]
             total_amount = cart.get_total_price()
 
-            # Create an order
-            order = cart.checkout(
-                payment_method=payment_method, total_amount=total_amount
+            # Update the customer's information from the form
+            customer.first_name = form.cleaned_data["first_name"]
+            customer.last_name = form.cleaned_data["last_name"]
+            customer.email = form.cleaned_data["email"]
+            customer.phone = form.cleaned_data["phone"]
+            customer.address = form.cleaned_data["address"]
+            customer.save()  # Save the updated customer information
+
+            # Create the order
+            order = Order.objects.create(
+                customer=customer,
+                created_at=timezone.now(),
+                total_amount=total_amount,
+                status="Pending",  # Or set a default status
+                payment_method=payment_method,
             )
 
-            # Optionally, you can redirect to an order confirmation page
+            # Create OrderDetail entries for each item in the cart
+            for item in cart.items.all():
+                # item.volume refers to the ProductVolume
+                OrderDetail.objects.create(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    price=item.volume.price,  # Use price from ProductVolume
+                )
+
+            # Clear the cart items after checkout
+            cart.items.all().delete()
+
+            # Optionally, redirect to an order confirmation page
             messages.success(
                 request,
                 f"Your order has been placed successfully! Order ID: {order.id}",
@@ -130,12 +157,20 @@ def checkout_view(request):
             return redirect("orders:order_confirmation", order_id=order.id)
 
     else:
-        form = CheckoutForm()
+        # Prepopulate the form with existing customer data if available
+        form = CheckoutForm(
+            initial={
+                "first_name": customer.first_name,
+                "last_name": customer.last_name,
+                "email": customer.email,
+                "phone": customer.phone,
+                "address": customer.address,
+            }
+        )
 
     return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
 
-# ////////////////////////////
 @login_required
 def order_confirmation_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -143,17 +178,81 @@ def order_confirmation_view(request, order_id):
 
 
 @login_required
-def order_list(request):
-    orders = Order.objects.all()
-    return render(request, "orders/orders.html", {"orders": orders})
+def orders_to_be_processed_view(request):
+    # Fetch all orders with status "Pending" or "Processing"
+    orders = Order.objects.filter(status__in=["Pending", "Processing"]).order_by(
+        "created_at"
+    )
+
+    # Check if orders were retrieved
+    if not orders:
+        # Handle case where no orders are found (optional)
+        return render(request, "orders/orders_to_be_processed.html", {"orders": orders})
+
+    # Render the orders in the template
+    return render(request, "orders/orders_to_be_processed.html", {"orders": orders})
 
 
 @login_required
-def process_order(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+def cashier_orders_view(request):
+    # Retrieve all orders
+    orders = Order.objects.all().order_by(
+        "-created_at"
+    )  # Ordering by latest orders first
+    return render(request, "orders/cashier_orders.html", {"orders": orders})
+
+
+@login_required
+def order_report_view(request, order_id):
+    # Fetch the order object including related details
+    order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
+
+    # Debugging output
+    print(
+        "Order Details Count:", order.details.count()
+    )  # Check the number of related details
+    for detail in order.details.all():
+        print(
+            detail.product.name, detail.quantity, detail.price
+        )  # Verify individual details
+
+    # Render the order report template with the order and its details
+    return render(request, "orders/order_report.html", {"order": order})
+
+
+@login_required
+def customer_order_history_view(request):
+    # Fetch all orders for the logged-in user (customer)
+    customer = (
+        request.user.customer
+    )  # Assuming you have a one-to-one link between User and Customer
+    orders = Order.objects.filter(customer=customer).order_by("-created_at")
+
+    # Render the template with the list of orders
+    return render(request, "orders/order_history.html", {"orders": orders})
+
+
+@login_required
+def order_detail_view(request, order_id):
+    order = get_object_or_404(Order, id=order_id, customer=request.user.customer)
+    return render(request, "orders/order_detail.html", {"order": order})
+
+
+@login_required
+def order_process_view(request, order_id):
+    # Fetch the order object including related details
+    order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
+
     if request.method == "POST":
-        order.status = "PROCESSED"
-        order.processed_at = timezone.now()
-        order.save()
-        return redirect("orders:order_list")
-    return render(request, "orders/process_order.html", {"order": order})
+        form = OrderStatusForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, "Order status updated successfully!", extra_tags="bg-success"
+            )
+            return redirect("orders:order_process", order_id=order.id)
+    else:
+        form = OrderStatusForm(instance=order)
+
+    # Render the order processing template with the order and its details
+    return render(request, "orders/order_process.html", {"order": order, "form": form})

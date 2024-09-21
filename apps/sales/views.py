@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from perpetual_pos.wsgi import *
+from core.wsgi import *
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from django.db.models import Sum

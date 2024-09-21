@@ -1,5 +1,5 @@
 """
-WSGI config for perpetual_pos project.
+WSGI config for core project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -16,9 +16,9 @@ load_dotenv()
 
 
 if os.environ.get("DJANGO_ENV") == "development":
-    settings = "perpetual_pos.settings_dev"
+    settings = "core.settings_dev"
 else:
-    settings = "perpetual_pos.settings"
+    settings = "core.settings"
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings)
 

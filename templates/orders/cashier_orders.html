@@ -1,0 +1,54 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% load humanize %}
+
+
+{% block content %}
+<div class="container my-3">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">All Orders</h2>
+        </div>
+        <div class="card-body">
+            {% if orders %}
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Payment Method</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.customer.get_full_name }}</td>
+                        <td>{{ order.created_at|date:"d M Y, H:i A" }}</td>
+                        <td>{{ order.total_amount|floatformat:"2"|intcomma }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.payment_method }}</td>
+                        <td>
+                            <a href="{% url 'orders:order_detail_view' order.id %}" class="btn btn-sm btn-primary">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No orders found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No orders found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

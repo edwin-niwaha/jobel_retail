@@ -13,9 +13,9 @@ def main():
     """Run administrative tasks."""
 
     if os.environ.get("DJANGO_ENV") == "development":
-        settings = "perpetual_pos.settings_dev"
+        settings = "core.settings_dev"
     else:
-        settings = "perpetual_pos.settings"
+        settings = "core.settings"
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings)
     try:
