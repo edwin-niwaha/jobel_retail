@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "django.contrib.humanize",
-    "apps.pos",
+    "apps.main",
     "apps.authentication",
     "apps.products",
     "apps.customers",

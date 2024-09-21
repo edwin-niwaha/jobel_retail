@@ -9,7 +9,7 @@ urlpatterns = [
     # Admin route
     path("admin/", admin.site.urls),
     # Index/Home routes
-    path("", include("apps.pos.urls")),
+    path("", include("apps.main.urls")),
     # Authentication routes
     path("auth/", include("apps.authentication.urls")),
     # Customer routes

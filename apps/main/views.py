@@ -156,7 +156,7 @@ def dashboard(request):
         "top_products_names_list": top_products_data,
         "top_products_quantity": json.dumps(top_products_quantity),
     }
-    return render(request, "pos/dashboard.html", context)
+    return render(request, "main/dashboard.html", context)
 
 
 # =================================== Monthly earnings graph ===================================

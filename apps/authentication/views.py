@@ -230,7 +230,7 @@ def contact_us(request):
                 # Send email to the user
                 subject = "Your message has been received"
                 message = f"Hello {instance.name},\n\nYour message has been received. \
-We will get back to you soon!\n\nThanks,\nPerpetual - JOBEL\nManagement"
+We will get back to you soon!\n\nThanks,\nPerpetual - PERPETUAL RETAIL MANAGER\nManagement"
                 from_email = (
                     settings.EMAIL_HOST_USER
                 )  # Use default from email from settings
