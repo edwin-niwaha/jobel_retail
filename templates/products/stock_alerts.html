@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Create new category and print button -->
+    <!-- Back button to product list -->
     <div class="row ml-0 mb-3">
         <a href="{% url 'products:products_list' %}">
             <button type="button" class="btn btn-info font-weight-bold">
@@ -13,22 +13,22 @@
         </a>
     </div>
 
-    <!-- DataTable -->
+    <!-- Stock Alerts Section -->
     <div id="printMe" class="card shadow mb-4">
         <div class="card-header py-3 bg-primary text-white">
             <h6 class="m-0 font-weight-bold">Stock Alerts</h6>
         </div>
         <div class="card-body">
             <!-- Low Stock Products -->
-            <h2 class="text-danger">Low Stock Products</h2>
+            <h2 class="text-warning">Low Stock Products</h2>
             {% if low_stock_products %}
             <div class="list-group">
-                {% for product in low_stock_products %}
-                <a href="{% url 'orders:product_detail' product.id %}"
+                {% for inventory in low_stock_products %}
+                <a href="{% url 'orders:product_detail' inventory.product.id %}"
                     class="list-group-item list-group-item-action list-group-item-warning">
-                    <h5 class="mb-1">{{ product.name }}</h5>
-                    <p class="mb-1">Current Stock: {{ product.stock }}</p>
-                    <small class="text-muted">Low Stock Threshold: {{ product.low_stock_threshold }}</small>
+                    <h5 class="mb-1">{{ inventory.product.name }}</h5>
+                    <p class="mb-1">Current Stock: {{ inventory.quantity }}</p>
+                    <small class="text-muted">Low Stock Threshold: {{ inventory.low_stock_threshold }}</small>
                 </a>
                 {% endfor %}
             </div>
@@ -37,14 +37,14 @@
             {% endif %}
 
             <!-- Out of Stock Products -->
-            <h2 class="text-danger m-3">Out of Stock Products</h2>
+            <h2 class="text-danger mt-4">Out of Stock Products</h2>
             {% if out_of_stock_products %}
             <div class="list-group">
-                {% for product in out_of_stock_products %}
-                <a href="{% url 'orders:product_detail' product.id %}"
+                {% for inventory in out_of_stock_products %}
+                <a href="{% url 'orders:product_detail' inventory.product.id %}"
                     class="list-group-item list-group-item-action list-group-item-danger">
-                    <h5 class="mb-1">{{ product.name }}</h5>
-                    <p class="mb-1">Current Stock: {{ product.stock }}</p>
+                    <h5 class="mb-1">{{ inventory.product.name }}</h5>
+                    <p class="mb-1">Current Stock: {{ inventory.quantity }}</p>
                     <small class="text-muted">Out of Stock</small>
                 </a>
                 {% endfor %}
@@ -54,6 +54,5 @@
             {% endif %}
         </div>
     </div>
-
 </div>
 {% endblock content %}

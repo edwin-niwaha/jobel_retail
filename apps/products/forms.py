@@ -1,5 +1,6 @@
 from django import forms
 from .models import Category, Volume, ProductVolume, Product, ProductImage
+from apps.inventory.models import Inventory
 
 
 # =================================== category form ===================================
@@ -61,6 +62,28 @@ class ProductVolumeForm(forms.ModelForm):
         return product_volume
 
 
+# =================================== Inventory form ===================================
+class InventoryForm(forms.ModelForm):
+    class Meta:
+        model = Inventory
+        fields = ["quantity", "low_stock_threshold"]
+        widgets = {
+            "quantity": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Enter stock quantity"}
+            ),
+            "low_stock_threshold": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter low stock threshold",
+                }
+            ),
+        }
+        labels = {
+            "quantity": "Stock Quantity",
+            "low_stock_threshold": "Low Stock Threshold",
+        }
+
+
 # =================================== product form ===================================
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -72,7 +95,6 @@ class ProductForm(forms.ModelForm):
             "category",
             "product_type",
             "gender",
-            "stock",
         ]
         widgets = {
             "name": forms.TextInput(
@@ -89,9 +111,6 @@ class ProductForm(forms.ModelForm):
             "category": forms.Select(attrs={"class": "form-control"}),
             "product_type": forms.Select(attrs={"class": "form-control"}),
             "gender": forms.Select(attrs={"class": "form-control"}),
-            "stock": forms.NumberInput(
-                attrs={"class": "form-control", "placeholder": "Enter stock quantity"}
-            ),
         }
         labels = {
             "name": "Product Name",
@@ -100,7 +119,6 @@ class ProductForm(forms.ModelForm):
             "category": "Category",
             "product_type": "Product Type",
             "gender": "Gender",
-            "stock": "Stock Quantity",
         }
 
 

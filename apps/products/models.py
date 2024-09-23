@@ -63,7 +63,6 @@ class Product(models.Model):
         blank=True,
         verbose_name="Category",
     )
-    # Link to Volume through the intermediate model
     volumes = models.ManyToManyField(
         Volume, through="ProductVolume", related_name="products"
     )
@@ -79,11 +78,6 @@ class Product(models.Model):
         default="Spray",
         verbose_name="Product Type",
     )
-    stock = models.PositiveIntegerField(verbose_name="Stock Quantity")
-    low_stock_threshold = models.PositiveIntegerField(
-        default=5, verbose_name="Low Stock Threshold"
-    )
-    is_out_of_stock = models.BooleanField(default=False, verbose_name="Out of Stock")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
@@ -93,26 +87,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def check_stock_alerts(self):
-        """Check stock levels and update alerts."""
-        if self.stock <= 0:
-            self.is_out_of_stock = True
-        else:
-            self.is_out_of_stock = False
-        if self.stock <= self.low_stock_threshold:
-            # Trigger a low stock alert
-            self.send_low_stock_alert()
-
-    def send_low_stock_alert(self):
-        """Send an alert for low stock."""
-        # Implement your notification logic here
-        # For example, sending an email or logging the alert
-        pass
-
-    def save(self, *args, **kwargs):
-        self.check_stock_alerts()
-        super().save(*args, **kwargs)
-
     def to_json(self):
         item = model_to_dict(self)
         item.update(
@@ -120,7 +94,9 @@ class Product(models.Model):
                 "id": self.id,
                 "text": self.name,
                 "category": self.category.name if self.category else None,
-                "quantity": 1,
+                "quantity": (
+                    self.inventory.quantity if hasattr(self, "inventory") else 0
+                ),
                 "total_product": 0,
             }
         )

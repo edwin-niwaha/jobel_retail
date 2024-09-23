@@ -15,16 +15,23 @@ PAYMENT_METHOD_CHOICES = [
     ("AIRTEL_MONEY", "Airtel Money"),
 ]
 
+SALE_TYPE_CHOICES = [
+    ("online", "Online"),
+    ("offline", "Offline"),
+]
+
 
 # =================================== Sale model ===================================
 class Sale(models.Model):
     order = models.ForeignKey(
         Order, related_name="sales", on_delete=models.SET_NULL, null=True, blank=True
     )
+    sale_type = models.CharField(
+        max_length=10, choices=SALE_TYPE_CHOICES, default="offline"
+    )
     date_added = models.DateTimeField(default=django.utils.timezone.now)
     trans_date = models.DateField(verbose_name="Receipt Date")
     receipt_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    # customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     customer = models.ForeignKey(
         Customer, related_name="sales", on_delete=models.SET_NULL, null=True, blank=True
     )

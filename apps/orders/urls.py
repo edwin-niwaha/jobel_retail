@@ -19,7 +19,7 @@ urlpatterns = [
         views.customer_order_history_view,
         name="customer_order_history",
     ),
-    path("cashier-orders/", views.cashier_orders_view, name="cashier_orders"),
+    path("cashier-orders/", views.all_orders_view, name="all_orders"),
     path("order/<int:order_id>/", views.order_detail_view, name="order_detail_view"),
     path(
         "to-be-processed/",

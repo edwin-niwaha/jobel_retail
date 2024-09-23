@@ -1,5 +1,6 @@
 from apps.authentication.models import Profile, Contact
 from apps.products.models import Product
+from apps.orders.models import Order
 from django.db.models import F
 
 from django.contrib.auth.decorators import login_required
@@ -33,12 +34,14 @@ def guest_user_feedback_context(request):
     }
 
 
-def low_stock_alerts(request):
-    # Fetch all products
-    products = Product.objects.all()
+def low_stock_alerts_context(request):
+    # Fetch all products along with their inventory
+    products = Product.objects.select_related("inventory").all()
 
-    # Filter products with low stock
-    low_stock_products = products.filter(stock__lte=F("low_stock_threshold"))
+    # Filter products with low stock based on inventory
+    low_stock_products = products.filter(
+        inventory__quantity__lte=F("inventory__low_stock_threshold")
+    )
 
     # Count of low stock products
     low_stock_count = low_stock_products.count()
@@ -46,4 +49,19 @@ def low_stock_alerts(request):
     return {
         "low_stock_products": low_stock_products,
         "low_stock_count": low_stock_count,
+    }
+
+
+def pending_orders_context(request):
+    # Fetch orders with statuses "Pending" or "Shipped"
+    pending_and_shipped_orders = Order.objects.filter(
+        status__in=["Pending", "Shipped"]
+    ).select_related("customer")
+
+    # Count the total number of pending and shipped orders
+    pending_and_shipped_count = pending_and_shipped_orders.count()
+
+    return {
+        "pending_and_shipped_orders": pending_and_shipped_orders,
+        "pending_orders_count": pending_and_shipped_count,
     }

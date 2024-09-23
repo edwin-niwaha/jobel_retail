@@ -13,20 +13,22 @@
             <li class="nav-item dropdown">
                 <a class="nav-link count-indicator dropdown-toggle" id="orderDropdown" href="#" data-toggle="dropdown">
                     <i class="mdi mdi-cart-outline"></i>
-                    <span class="count count-varient2">{{ feedback_count }}</span>
+                    <span class="count count-varient2">{{ pending_orders_count }}</span>
                 </a>
                 <div class="dropdown-menu navbar-dropdown navbar-dropdown-large preview-list"
                     aria-labelledby="orderDropdown">
                     <h6 class="p-3 mb-0">Customer Orders</h6>
-                    {% if user_feedback %}
-                    {% for feedback in user_feedback %}
-                    <a class="dropdown-item preview-item" href="{% url 'user_feedback' %}"
+
+                    {% if pending_and_shipped_orders %}
+                    {% for order in pending_and_shipped_orders %}
+                    <a class="dropdown-item preview-item" href="{% url 'orders:orders_to_be_processed' %}"
                         onclick="return confirm('You will be redirected to a page for taking action');">
                         <div class="preview-item-content flex-grow">
                             <span class="badge badge-pill badge-success">Request</span>
-                            <p class="text-small text-muted ellipsis mb-0">Order from <b>{{ feedback.name }}</b></p>
+                            <p class="text-small text-muted ellipsis mb-0">Order from
+                                <b>{{ order.customer.get_full_name }}</b></p>
                         </div>
-                        <p class="text-small text-muted align-self-start">{{ feedback.created_at|date:"g:i A" }}</p>
+                        <p class="text-small text-muted align-self-start">{{ order.created_at|date:"g:i A" }}</p>
                     </a>
                     {% endfor %}
                     {% else %}
@@ -47,14 +49,14 @@
                     <h6 class="p-3 mb-0">Low Stock Alerts</h6>
                     {% if low_stock_products %}
                     {% for product in low_stock_products %}
-                    <a class="dropdown-item preview-item" href="{% url 'orders:product_detail' product.id %}"
+                    <a class="dropdown-item preview-item" href="{% url 'products:products_list'%}"
                         onclick="return confirm('You will be redirected to a page for taking action');">
                         <div class="preview-item-content flex-grow">
                             <span class="badge badge-pill badge-warning">Low Stock</span>
                             <p class="text-small text-muted ellipsis mb-0">
                                 <b>{{ product.name }}</b>
                                 <br>
-                                Current Stock: {{ product.stock }}
+                                Current Stock: {{ product.inventory.quantity }}
                             </p>
                         </div>
                     </a>
@@ -65,7 +67,7 @@
                 </div>
             </li>
 
-            <!-- Notifications -->
+            <!-- Activate User Accounts -->
             <li class="nav-item dropdown">
                 <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#"
                     data-toggle="dropdown">
@@ -77,6 +79,7 @@
                     <h6 class="p-3 mb-0">Activate User Accounts</h6>
                     <hr class="bg-info" />
                     <div class="preview-list">
+                        {% if guest_profiles %}
                         {% for profile in guest_profiles %}
                         <a class="dropdown-item preview-item" href="{% url 'profile_list' %}"
                             onclick="return confirm('You will be redirected to a page for activating the user account');">
@@ -88,9 +91,10 @@
                                     <b>({{ profile.role }})</b></span>
                             </div>
                         </a>
-                        {% empty %}
-                        <p class="dropdown-item">No guests available.</p>
                         {% endfor %}
+                        {% else %}
+                        <p class="dropdown-item">No guests available.</p>
+                        {% endif %}
                     </div>
                 </div>
             </li>

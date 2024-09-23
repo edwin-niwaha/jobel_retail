@@ -34,11 +34,16 @@
                             <select class="form-control" name="searchbox_products" id="searchbox_products">
                                 <option value="" selected disabled hidden>Select a product</option>
                                 {% for product in products %}
-                                <option value="{{ product.id }}" data-price="{{ product.volume.price }}"
-                                    data-name="{{ product.name }}">{{ product.name }}</option>
+                                {% for product_volume in product.productvolume_set.all %}
+                                <option value="{{ product.id }}" data-price="{{ product_volume.price }}"
+                                    data-name="{{ product.name }}">
+                                    {{ product.name }} - {{ product_volume.volume }}ML
+                                </option>
+                                {% endfor %}
                                 {% endfor %}
                             </select>
                         </div>
+
 
                         <!-- Products Table -->
                         <div class="table-responsive mt-4">

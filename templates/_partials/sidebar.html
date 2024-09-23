@@ -15,7 +15,7 @@
         <li class="nav-item">
             <a class="nav-link" href="/">
                 <i class="mdi mdi-home menu-icon"></i>
-                <span class="menu-title">PERPETUAL RM-HOME</span>
+                <span class="menu-title">RETAIL-HOME</span>
             </a>
         </li>
 
@@ -31,16 +31,10 @@
             <hr class="sidebar-divider my-3">
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'orders:orders_to_be_processed' %}">
-                <i class="mdi mdi-cart menu-icon"></i>
-                <span class="menu-title">Orders</span>
-            </a>
-        </li>
         <!-- Nav Item - Products Collapse Menu -->
         <li class="nav-item">
             <a class="nav-link" data-toggle="collapse" href="#ui-basic-sp" aria-expanded="false"
-                aria-controls="ui-basic">
+                aria-controls="ui-basic-sp">
                 <i class="mdi mdi-package menu-icon"></i>
                 <span class="menu-title">Products</span>
                 <i class="menu-arrow"></i>
@@ -49,20 +43,58 @@
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'products:categories_list' %}" target="_self">
+                            <i class="mdi mdi-tag-multiple menu-icon"></i>
                             Categories
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'products:products_list' %}" target="_self"> Products
+                        <a class="nav-link active" href="{% url 'products:products_list' %}" target="_self">
+                            <i class="mdi mdi-package-variant menu-icon"></i>
+                            Product List
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Inventory Section -->
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#inventory-menu" aria-expanded="false"
+                aria-controls="inventory-menu">
+                <i class="mdi mdi-warehouse menu-icon"></i>
+                <span class="menu-title">Inventory</span>
+                <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="inventory-menu">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventory:inventory_list' %}">
+                            <i class="mdi mdi-box-cutter menu-icon"></i>
+                            Manage Stock
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventory:inventory-report' %}">
+                            <i class="mdi mdi-file-chart menu-icon"></i>
+                            Inventory Report
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'products:stock_alerts' %}" target="_self">
+                            <i class="mdi mdi-alert menu-icon"></i>
                             Stock Alerts
                         </a>
                     </li>
                 </ul>
             </div>
+        </li>
+
+
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'orders:orders_to_be_processed' %}">
+                <i class="mdi mdi-cart menu-icon"></i>
+                <span class="menu-title">Orders</span>
+            </a>
         </li>
 
         <li class="nav-item">
@@ -83,16 +115,28 @@
             <div class="collapse" id="ui-basic1">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Profit & Loss </a>
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-chart-line menu-icon"></i>
+                            Profit & Loss
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Cash Flow</a>
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-cash-multiple menu-icon"></i>
+                            Cash Flow
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Balance Sheet</a>
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-book menu-icon"></i>
+                            Balance Sheet
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Expense Tracking</a>
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-clipboard-list menu-icon"></i>
+                            Expense Tracking
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -105,6 +149,7 @@
             </a>
         </li>
         {% endif %}
+
 
         <li class="nav-item">
             <a class="nav-link" href="{% url 'customers:customers_list' %}">
@@ -129,21 +174,22 @@
             <div class="collapse" id="ui-basic2">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Sales Reports</a>
-                        <!--
-                        Daily Sales Report: Displays total sales, sales by product, payment methods used, etc., for a
-                        specific day.
-                        Monthly/Yearly Sales Report: Summarizes total revenue, average sales per day, and top-selling
-                        products for longer periods.
-                        Sales by Product: Detailed breakdown of sales by individual products or categories.
-                        Sales by Payment Method: Analyze sales based on payment methods (cash, card, etc.).
-                        -->
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-file-chart menu-icon"></i>
+                            Sales Reports
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Inventory Reports</a>
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-package-variant menu-icon"></i>
+                            Inventory Reports
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">Customer Reports</a>
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-account-multiple menu-icon"></i>
+                            Customer Reports
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -168,10 +214,16 @@
             <div class="collapse" id="ui-basic3">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'profile_list' %}" target="_self">Profiles</a>
+                        <a class="nav-link active" href="{% url 'profile_list' %}" target="_self">
+                            <i class="mdi mdi-account-circle menu-icon"></i>
+                            Profiles
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'user_feedback' %}" target="_self">Feedback</a>
+                        <a class="nav-link active" href="{% url 'user_feedback' %}" target="_self">
+                            <i class="mdi mdi-comment-text menu-icon"></i>
+                            Feedback
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -184,6 +236,7 @@
             </a>
         </li>
         {% endif %}
+
 
     </ul>
 </nav>

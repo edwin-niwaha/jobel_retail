@@ -1,4 +1,4 @@
-from django.conf import settings  # For AUTH_USER_MODEL
+from django.conf import settings
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -24,7 +24,7 @@ class Customer(models.Model):
     phone = PhoneNumberField(
         null=True,
         blank=True,
-        default="+256999999999",
+        default="+12125552368",
         verbose_name="Business Telephone",
     )
 

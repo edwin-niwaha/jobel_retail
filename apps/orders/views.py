@@ -1,13 +1,24 @@
 from django.contrib import messages
+import logging
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.db import transaction
 from .models import Order
 from .models import Cart, CartItem, Order, OrderDetail
 from apps.products.models import Product, ProductVolume
 from django.core.exceptions import MultipleObjectsReturned
 from .forms import CheckoutForm, OrderStatusForm
 from apps.customers.models import Customer
+
+from apps.authentication.decorators import (
+    admin_or_manager_required,
+    admin_required,
+    admin_or_manager_or_staff_required,
+)
+
+logger = logging.getLogger(__name__)
 
 
 # =================================== Products Detail ===================================
@@ -178,45 +189,42 @@ def order_confirmation_view(request, order_id):
 
 
 @login_required
+@admin_or_manager_or_staff_required
 def orders_to_be_processed_view(request):
-    # Fetch all orders with status "Pending" or "Processing"
-    orders = Order.objects.filter(status__in=["Pending", "Processing"]).order_by(
+    orders = Order.objects.filter(status__in=["Pending", "Shipped"]).order_by(
         "created_at"
     )
 
-    # Check if orders were retrieved
     if not orders:
-        # Handle case where no orders are found (optional)
         return render(request, "orders/orders_to_be_processed.html", {"orders": orders})
 
-    # Render the orders in the template
     return render(request, "orders/orders_to_be_processed.html", {"orders": orders})
 
 
 @login_required
-def cashier_orders_view(request):
-    # Retrieve all orders
-    orders = Order.objects.all().order_by(
-        "-created_at"
-    )  # Ordering by latest orders first
-    return render(request, "orders/cashier_orders.html", {"orders": orders})
+@admin_or_manager_or_staff_required
+def all_orders_view(request):
+    status_filter = request.GET.get("status", "")
+    if status_filter == "All" or status_filter == "":
+        orders = Order.objects.all().order_by("-created_at")
+    else:
+        orders = Order.objects.filter(status=status_filter)
+
+    context = {
+        "orders": orders,
+        "status_filter": status_filter,
+    }
+    return render(request, "orders/all_orders.html", context)
 
 
 @login_required
 def order_report_view(request, order_id):
-    # Fetch the order object including related details
     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
 
-    # Debugging output
-    print(
-        "Order Details Count:", order.details.count()
-    )  # Check the number of related details
+    print("Order Details Count:", order.details.count())
     for detail in order.details.all():
-        print(
-            detail.product.name, detail.quantity, detail.price
-        )  # Verify individual details
+        print(detail.product.name, detail.quantity, detail.price)
 
-    # Render the order report template with the order and its details
     return render(request, "orders/order_report.html", {"order": order})
 
 
@@ -238,9 +246,29 @@ def order_detail_view(request, order_id):
     return render(request, "orders/order_detail.html", {"order": order})
 
 
+# @login_required
+# def order_process_view(request, order_id):
+#     # Fetch the order object including related details
+#     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
+
+#     if request.method == "POST":
+#         form = OrderStatusForm(request.POST, instance=order)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(
+#                 request, "Order status updated successfully!", extra_tags="bg-success"
+#             )
+#             return redirect("orders:orders_to_be_processed")
+#     else:
+#         form = OrderStatusForm(instance=order)
+
+#     # Render the order processing template with the order and its details
+#     return render(request, "orders/order_process.html", {"order": order, "form": form})
+
+
 @login_required
+@admin_or_manager_or_staff_required
 def order_process_view(request, order_id):
-    # Fetch the order object including related details
     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
 
     if request.method == "POST":
@@ -250,9 +278,20 @@ def order_process_view(request, order_id):
             messages.success(
                 request, "Order status updated successfully!", extra_tags="bg-success"
             )
-            return redirect("orders:order_process", order_id=order.id)
+            return redirect("orders:orders_to_be_processed")
+        else:
+            # Extract error messages
+            error_messages = [
+                f"{field}: {', '.join(errors)}" for field, errors in form.errors.items()
+            ]
+            formatted_errors = " ".join(error_messages)
+            messages.error(
+                request,
+                f"Failed to update order status: {formatted_errors}",
+                extra_tags="bg-danger",
+            )
+
     else:
         form = OrderStatusForm(instance=order)
 
-    # Render the order processing template with the order and its details
     return render(request, "orders/order_process.html", {"order": order, "form": form})

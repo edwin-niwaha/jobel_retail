@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <a href="{% url 'orders:orders_to_be_processed' %}" class="btn btn-info font-weight-bold">
+                <i class="mdi mdi-arrow-left-bold mr-2"></i>
+                Go back
+            </a>
+
+            <form method="get" class="ml-auto">
+                <select name="status" class="form-control" onchange="this.form.submit()">
+                    <option value="" {% if status_filter == "" %}selected{% endif %}>-- Select Status --</option>
+                    <option value="All" {% if status_filter == "All" %}selected{% endif %}>All Orders</option>
+                    <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Shipped" {% if status_filter == "Shipped" %}selected{% endif %}>Shipped</option>
+                    <option value="Delivered" {% if status_filter == "Delivered" %}selected{% endif %}>Delivered
+                    </option>
+                    <option value="Canceled" {% if status_filter == "Canceled" %}selected{% endif %}>Canceled</option>
+                    <option value="Refunded" {% if status_filter == "Refunded" %}selected{% endif %}>Refunded</option>
+                    <option value="Returned" {% if status_filter == "Returned" %}selected{% endif %}>Returned</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="card-body">
+            {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Pay Method</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.customer.get_full_name }}</td>
+                            <td>{{ order.created_at|date:"d M Y, H:i A" }}</td>
+                            <td>{{ order.total_amount|floatformat:"2"|intcomma }}</td>
+                            <td>{{ order.status }}</td>
+                            <td>{{ order.payment_method }}</td>
+                            <td>
+                                <a href="{% url 'orders:order_detail_view' order.id %}" class="btn btn-sm btn-primary">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No orders found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">No orders available at the moment.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

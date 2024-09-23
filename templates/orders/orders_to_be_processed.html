@@ -1,44 +1,54 @@
-{% extends "accounts/base.html" %}
+{% extends "base.html" %}
 {% load static %}
 {% load humanize %}
 
+
 {% block content %}
-<div class="container my-3">
-    <h2>Orders to be processed</h2>
-    <a href="{% url 'orders:cashier_orders' %}" class="btn btn-primary">
-        View All Orders
-    </a>
-    {% if orders %}
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Order Date</th>
-                <th>Status</th>
-                <th>Total Amount</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.customer.get_full_name }}</td>
-                <td>{{ order.created_at|date:"d M Y, H:i A" }}</td>
-                <td>{{ order.status }}</td>
-                <td class="text-right">{{ order.total_amount|floatformat:"2"|intcomma }}</td>
-                <td>
-                    <a href="{% url 'orders:order_report' order.id %}" class="btn btn-info btn-sm">View</a>
-                    <a href="{% url 'orders:order_process' order.id %}" class="btn btn-success btn-sm ml-2"
-                        onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Process</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-muted">No orders to be processed at the moment.</p>
-    {% endif %}
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <a href="{% url 'orders:orders_to_be_processed' %}" class="btn btn-success font-weight-bold">
+                Processing Orders
+            </a>
+            <a href="{% url 'orders:all_orders' %}" class="btn btn-success font-weight-bold ml-2">
+                Filter Orders
+            </a>
+        </div>
+
+        <div class="card-body">
+            {% if orders %}
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.customer.get_full_name }}</td>
+                        <td>{{ order.created_at|date:"d M Y, H:i A" }}</td>
+                        <td>{{ order.status }}</td>
+                        <td class="text-right">{{ order.total_amount|floatformat:"2"|intcomma }}</td>
+                        <td>
+                            <a href="{% url 'orders:order_report' order.id %}" class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'orders:order_process' order.id %}" class="btn btn-success btn-sm ml-2"
+                                onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Process</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No orders to be processed at the moment.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

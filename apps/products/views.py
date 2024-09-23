@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.db import IntegrityError
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.db.models import F
+from apps.inventory.models import Inventory
 
 # Import models and forms
 from .models import Category, Volume, ProductVolume, Product, ProductImage
@@ -138,6 +139,7 @@ def categories_update_view(request, category_id):
 
 
 # =================================== categories delete view ===================================
+@login_required
 @admin_required
 @transaction.atomic
 def categories_delete_view(request, category_id):
@@ -297,17 +299,16 @@ def delete_product_volume_view(request, volume_id):
     return redirect("products:product_volume_list", product_id=product_id)
 
 
-# def pts_list(request):
-#     # Prefetch related ProductVolume and ProductImage objects
-#     products = Product.objects.prefetch_related("productvolume_set", "images").all()
-#     return render(request, "products/pts.html", {"products": products})
-
-
+@login_required
+@admin_or_manager_or_staff_required
 def pts_list(request):
+    # Fetch products with prefetch_related for volumes and images
     products = Product.objects.prefetch_related("productvolume_set", "images").all()
 
-    # Calculate totals
-    total_stock = products.aggregate(Sum("stock"))["stock__sum"] or 0
+    # Calculate totals using inventory quantities
+    total_stock = sum(
+        product.inventory.quantity for product in products if product.inventory
+    )
 
     total_ml = (
         products.aggregate(total_ml=Sum("productvolume__volume__ml"))["total_ml"] or 0
@@ -331,26 +332,34 @@ def pts_list(request):
 
 
 # =================================== produts list view ===================================
+
+
 @login_required
 @admin_or_manager_or_staff_required
 def products_list_view(request):
-    products = Product.objects.all()
-    product_volumes = ProductVolume.objects.all()
+    # Fetch all products with related volumes and inventory
+    products = Product.objects.prefetch_related("productvolume_set", "inventory").all()
+
+    # Calculate total price and total cost using inventory quantity
     total_price = (
-        product_volumes.aggregate(total_price=Sum(F("price") * F("product__stock")))[
-            "total_price"
-        ]
-        or 0
-    )
-    total_cost = (
-        product_volumes.aggregate(total_cost=Sum(F("cost") * F("product__stock")))[
-            "total_cost"
-        ]
+        ProductVolume.objects.filter(product__inventory__isnull=False).aggregate(
+            total_price=Sum(F("price") * F("product__inventory__quantity"))
+        )["total_price"]
         or 0
     )
 
-    # Calculate total stock
-    total_stock = products.aggregate(total_stock=Sum("stock"))["total_stock"] or 0
+    total_cost = (
+        ProductVolume.objects.filter(product__inventory__isnull=False).aggregate(
+            total_cost=Sum(F("cost") * F("product__inventory__quantity"))
+        )["total_cost"]
+        or 0
+    )
+
+    # Calculate total stock from the Inventory model
+    total_stock = (
+        Product.objects.aggregate(total_stock=Sum("inventory__quantity"))["total_stock"]
+        or 0
+    )
 
     context = {
         "active_icon": "products",
@@ -498,12 +507,16 @@ def products_delete_view(request, product_id):
 @login_required
 @admin_or_manager_or_staff_required
 def stock_alerts_view(request):
-    # Fetch all products
-    products = Product.objects.all()
+    # Fetch all products with inventory details
+    low_stock_products = Inventory.objects.filter(
+        quantity__lte=F("low_stock_threshold"), quantity__gt=0  # Low stock but not 0
+    ).select_related(
+        "product"
+    )  # Ensures related product data is fetched
 
-    # Filter products with low stock or out of stock
-    low_stock_products = products.filter(stock__lte=F("low_stock_threshold"))
-    out_of_stock_products = products.filter(stock=0)
+    out_of_stock_products = Inventory.objects.filter(
+        quantity=0  # Out of stock
+    ).select_related("product")
 
     context = {
         "low_stock_products": low_stock_products,
@@ -601,7 +614,7 @@ def product_images(request):
 
 # =================================== Delete Product Image ===================================
 @login_required
-@admin_or_manager_required
+@admin_required
 @transaction.atomic
 def delete_product_image(request, pk):
     records = ProductImage.objects.get(id=pk)

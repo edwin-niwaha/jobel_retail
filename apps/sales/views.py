@@ -53,19 +53,21 @@ def sales_list_view(request):
 @admin_or_manager_or_staff_required
 @login_required
 def sales_add_view(request):
-    products = Product.objects.filter(status="ACTIVE")  # Only active products
+    # Fetch only active products with their inventory
+    products = Product.objects.filter(status="ACTIVE").select_related("inventory")
+
     context = {
         "active_icon": "sales",
         "customers": [c.to_select2() for c in Customer.objects.all()],
-        "products": products,  # Passing active products to the template
-        "total_stock": products.aggregate(Sum("stock"))[
-            "stock__sum"
-        ],  # Sum of stock balances
+        "products": products,
+        "total_stock": sum(
+            product.inventory.quantity if hasattr(product, "inventory") else 0
+            for product in products
+        ),
     }
 
     if request.method == "POST":
         try:
-            # Log the raw POST data
             logger.debug(f"POST data: {request.POST}")
 
             # Extract and process form data
@@ -87,23 +89,27 @@ def sales_add_view(request):
                 logger.info(f"Sale created successfully: {sale_attributes}")
 
                 # Extract product details from form data
-                products = request.POST.getlist("products")
-                for product in products:
-                    product_data = json.loads(product)
+                products_data = request.POST.getlist("products")
+                for product_data_str in products_data:
+                    product_data = json.loads(product_data_str)
                     product_obj = Product.objects.get(id=int(product_data["id"]))
                     quantity_requested = int(product_data["quantity"])
 
-                    # Check if stock is available
-                    if product_obj.stock < quantity_requested:
+                    # Check if the product has inventory and stock is available
+                    if (
+                        not hasattr(product_obj, "inventory")
+                        or product_obj.inventory.quantity < quantity_requested
+                    ):
                         raise ValueError(
                             f"Oops! Insufficient stock for {product_obj.name}"
                         )
 
-                    # Update stock
-                    product_obj.stock -= quantity_requested
-                    product_obj.save()
+                    # Update inventory stock
+                    inventory_obj = product_obj.inventory
+                    inventory_obj.quantity -= quantity_requested
+                    inventory_obj.save()
                     logger.info(
-                        f"Stock updated for {product_obj.name}: {product_obj.stock}"
+                        f"Stock updated for {product_obj.name}: {inventory_obj.quantity}"
                     )
 
                     # Create sale detail
@@ -142,7 +148,6 @@ def sales_add_view(request):
 @login_required
 @admin_or_manager_or_staff_required
 def sales_details_view(request, sale_id):
-    # Get the sale using get_object_or_404 to handle cases where the sale might not exist
     sale = get_object_or_404(Sale, id=sale_id)
 
     # Get the sale details related to the sale
@@ -188,7 +193,7 @@ def sale_delete_view(request, sale_id):
         return redirect("sales:sales_list")
 
 
-# =================================== Sale delete view ===================================
+# =================================== Sale receipt view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def receipt_pdf_view(request, sale_id):

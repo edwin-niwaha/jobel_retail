@@ -1,5 +1,5 @@
 from django import forms
-from .models import PAYMENT_METHOD_CHOICES, Order
+from .models import PAYMENT_METHOD_CHOICES, ORDER_STATUS_CHOICES, Order
 
 
 class CheckoutForm(forms.Form):
@@ -64,3 +64,14 @@ class OrderStatusForm(forms.ModelForm):
         widgets = {
             "status": forms.Select(attrs={"class": "form-control"}),
         }
+
+    def clean_status(self):
+        status = self.cleaned_data.get("status")
+        order = self.instance
+
+        if order.status == status:
+            raise forms.ValidationError(
+                "The selected status is already set for this order."
+            )
+
+        return status

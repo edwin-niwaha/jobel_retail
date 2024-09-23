@@ -21,21 +21,16 @@ from apps.authentication.decorators import (
 
 # =================================== Home User view  ===================================
 def index(request):
-    # Fetch all active products and prefetch associated images and volumes
     products = Product.objects.prefetch_related("images", "productvolume_set").filter(
         status="ACTIVE"
     )
 
-    # Prepare the products with their images, volumes, and price ranges
     products_with_images = []
     for product in products:
-        # Fetch default image first if available
         images = product.images.filter(is_default=True)
         if not images.exists():
-            # If no default image, fetch all images
             images = product.images.all()
 
-        # Fetch volumes and calculate price range
         volumes = product.productvolume_set.all()
         if volumes.exists():
             min_price = volumes.aggregate(Min("price"))["price__min"]
@@ -52,7 +47,6 @@ def index(request):
             }
         )
 
-    # Pass the data to the template
     return render(
         request,
         "index.html",
@@ -63,6 +57,8 @@ def index(request):
     )
 
 
+@login_required
+@admin_or_manager_or_staff_required
 def get_total_sales_for_period(start_date, end_date):
     return (
         Sale.objects.filter(trans_date__range=[start_date, end_date]).aggregate(
@@ -78,43 +74,29 @@ def get_total_sales_for_period(start_date, end_date):
 def dashboard(request):
     today = date.today()
     year = today.year
-    monthly_earnings = []
 
-    # Calculate earnings per month
-    for month in range(1, 13):
-        earning = (
-            Sale.objects.filter(trans_date__year=year, trans_date__month=month)
-            .aggregate(
-                total_variable=Coalesce(
-                    Sum(F("grand_total")), 0.0, output_field=FloatField()
-                )
-            )
-            .get("total_variable")
-        )
-        monthly_earnings.append(earning)
+    # Calculate monthly earnings
+    monthly_earnings = [
+        Sale.objects.filter(trans_date__year=year, trans_date__month=month).aggregate(
+            total=Coalesce(Sum("grand_total"), 0.0)
+        )["total"]
+        for month in range(1, 13)
+    ]
 
     # Calculate annual earnings
-    annual_earnings = (
-        Sale.objects.filter(trans_date__year=year)
-        .aggregate(
-            total_variable=Coalesce(
-                Sum(F("grand_total")), 0.0, output_field=FloatField()
-            )
-        )
-        .get("total_variable")
-    )
+    annual_earnings = Sale.objects.filter(trans_date__year=year).aggregate(
+        total=Coalesce(Sum("grand_total"), 0.0)
+    )["total"]
     annual_earnings = format(annual_earnings, ".2f")
 
-    # AVG per month
+    # Average monthly earnings
     avg_month = format(sum(monthly_earnings) / 12, ".2f")
 
     # Total sales for today, week, and month
     def get_total_sales_for_period(start_date, end_date):
         return (
             Sale.objects.filter(trans_date__range=[start_date, end_date]).aggregate(
-                total_sales=Coalesce(
-                    Sum(F("grand_total")), 0.0, output_field=FloatField()
-                )
+                total_sales=Coalesce(Sum("grand_total"), 0.0)
             )["total_sales"]
             or 0
         )
@@ -127,25 +109,28 @@ def dashboard(request):
 
     # Top-selling products
     top_products = Product.objects.annotate(
-        quantity_sum=Sum("saledetail__quantity")
+        quantity_sum=Sum("inventory__quantity")
     ).order_by("-quantity_sum")[:3]
 
-    top_products_data = [(p.name, p.quantity_sum) for p in top_products]
-
-    # Ensure default values are included if no products are available
+    top_products_data = [
+        (p.name, p.inventory.quantity if hasattr(p, "inventory") else 0)
+        for p in top_products
+    ]
     top_products_data += [("None", 0)] * (3 - len(top_products_data))
 
     top_products_names = [name for name, _ in top_products_data]
     top_products_quantity = [quantity for _, quantity in top_products_data]
 
-    # Stock balances
-    stock_bal = Product.objects.filter(status="ACTIVE")  # Only active products
+    # Total stock from Inventory
+    total_stock = Product.objects.filter(status="ACTIVE").aggregate(
+        total=Coalesce(Sum("inventory__quantity"), 0)
+    )["total"]
 
     context = {
         "active_icon": "dashboard",
         "products": Product.objects.filter(status="ACTIVE").count(),
-        "total_stock": stock_bal.aggregate(Sum("stock"))["stock__sum"],
-        "categories": Category.objects.all().count(),
+        "total_stock": total_stock,
+        "categories": Category.objects.count(),
         "annual_earnings": annual_earnings,
         "monthly_earnings": json.dumps(monthly_earnings),
         "avg_month": avg_month,
@@ -153,51 +138,10 @@ def dashboard(request):
         "total_sales_week": total_sales_week,
         "total_sales_month": total_sales_month,
         "top_products_names": json.dumps(top_products_names),
-        "top_products_names_list": top_products_data,
         "top_products_quantity": json.dumps(top_products_quantity),
     }
+
     return render(request, "main/dashboard.html", context)
-
-
-# =================================== Monthly earnings graph ===================================
-# @login_required
-# @admin_or_manager_or_staff_required
-# def monthly_earnings_view(request):
-#     today = date.today()
-#     year = today.year
-#     monthly_earnings = []
-
-#     for month in range(1, 13):
-#         earning = (
-#             Sale.objects.filter(date_added__year=year, date_added__month=month)
-#             .aggregate(
-#                 total_variable=Coalesce(
-#                     Sum(F("grand_total")), 0.0, output_field=FloatField()
-#                 )
-#             )
-#             .get("total_variable")
-#         )
-#         monthly_earnings.append(earning)
-
-#     return JsonResponse(
-#         {
-#             "labels": [
-#                 "Jan",
-#                 "Feb",
-#                 "Mar",
-#                 "Apr",
-#                 "May",
-#                 "Jun",
-#                 "Jul",
-#                 "Aug",
-#                 "Sep",
-#                 "Oct",
-#                 "Nov",
-#                 "Dec",
-#             ],
-#             "data": monthly_earnings,
-#         }
-#     )
 
 
 @login_required
@@ -241,6 +185,8 @@ def monthly_earnings_view(request):
 
 
 # =================================== Annual Sales graph ===================================
+@login_required
+@admin_or_manager_or_staff_required
 def sales_data_api(request):
     # Query to get total sales grouped by year
     sales_per_year = (

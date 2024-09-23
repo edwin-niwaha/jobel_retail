@@ -1,10 +1,7 @@
-# Import necessary modules from Django
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
-
-# Import models and forms
 from .models import Customer
 from .forms import CustomerForm
 
@@ -20,14 +17,12 @@ from apps.authentication.decorators import (
 @login_required
 @admin_or_manager_or_staff_required
 def customers_list_view(request):
-    """
-    Display a list of all customers.
-    """
+    customers = Customer.objects.all().order_by("id")
     context = {
         "active_icon": "customers",
-        "customers": Customer.objects.all().order_by("id"),
+        "customers": customers,
     }
-    return render(request, "customers/customers.html", context=context)
+    return render(request, "customers/customers.html", context)
 
 
 # =================================== customers add view ===================================
@@ -35,9 +30,6 @@ def customers_list_view(request):
 @admin_or_manager_or_staff_required
 @transaction.atomic
 def customers_add_view(request):
-    """
-    Handle the addition of a new customer.
-    """
     context = {"active_icon": "customers"}
 
     if request.method == "POST":
