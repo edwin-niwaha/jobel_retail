@@ -14,7 +14,13 @@
     <link rel="stylesheet" href="{% static 'assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
     <link rel="shortcut icon" href="{% static 'images/file.png' %}" />
-
+    <style>
+        @media print {
+            .print-hide {
+                display: none;
+            }
+        }
+    </style>
     <!-- Additional Stylesheets -->
     <link rel="stylesheet" href="{% static 'css/htmx_table.css' %}" /> <!-- HTMX Data tables CSS -->
     <link rel="stylesheet" href="{% static 'css/chosen.css' %}" /> <!-- CSS for Searchable dropdown -->

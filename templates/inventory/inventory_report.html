@@ -4,9 +4,25 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="card shadow-sm">
+    <div class="row mb-3">
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+            <a href="{% url 'dashboard' %}">
+                <button type="button" class="btn btn-info font-weight-bold">
+                    <i class="mdi mdi-arrow-left-bold mr-2"></i>
+                    Go back
+                </button>
+            </a>
+            <div class="d-flex">
+
+                <button title="Print" type="button" class="btn btn-success ml-2" onclick="printDiv('printMe')">
+                    <i class="mdi mdi-printer btn-icon-prepend"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="printMe" class="card shadow-sm">
         <div class="card-header">
-            <h2 class="text-primary">{{ table_title }}</h2>
+            <h2 class="text-primary">{{ table_title|upper }}</h2>
         </div>
 
         <div class="card-body">

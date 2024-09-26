@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 @login_required
 @admin_or_manager_or_staff_required
 def sales_list_view(request):
-    # sales = Sale.objects.all().select_related("customer").order_by("id")
     sales = (
         Sale.objects.all()
         .select_related("customer")
@@ -40,7 +39,7 @@ def sales_list_view(request):
     total_items = sum(sale.sum_items() for sale in sales)  # As before, calling method
 
     context = {
-        "active_icon": "sales",
+        "table_title": "sales",
         "sales": sales,
         "grand_total": grand_total,
         "total_items": total_items,
@@ -57,7 +56,6 @@ def sales_add_view(request):
     products = Product.objects.filter(status="ACTIVE").select_related("inventory")
 
     context = {
-        "active_icon": "sales",
         "customers": [c.to_select2() for c in Customer.objects.all()],
         "products": products,
         "total_stock": sum(

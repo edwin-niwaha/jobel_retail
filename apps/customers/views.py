@@ -21,6 +21,7 @@ def customers_list_view(request):
     context = {
         "active_icon": "customers",
         "customers": customers,
+        "table_title": "Customers",
     }
     return render(request, "customers/customers.html", context)
 
@@ -30,7 +31,9 @@ def customers_list_view(request):
 @admin_or_manager_or_staff_required
 @transaction.atomic
 def customers_add_view(request):
-    context = {"active_icon": "customers"}
+    context = {
+        "table_title": "Add Customer",
+    }
 
     if request.method == "POST":
         form = CustomerForm(request.POST)

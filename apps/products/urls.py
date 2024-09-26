@@ -19,8 +19,11 @@ urlpatterns = [
         name="categories_delete",
     ),
     # ** Volume URLs **
+    path("volume/list", views.volume_list, name="volume_list"),
     path("volume/add/", views.volume_add_view, name="volume_add"),
-    path("volume/update/<int:pk>/", views.volume_update_view, name="volume_update"),
+    path(
+        "volume/update/<int:volume_id>/", views.volume_update_view, name="volume_update"
+    ),
     # ** Product Volume URLs **
     path(
         "volume/add/<int:product_id>/",
@@ -43,7 +46,7 @@ urlpatterns = [
         name="delete_product_volume",
     ),
     # ** Product URLs **
-    path("all", views.pts_list, name="pts"),
+    path("all", views.products_list_all, name="products_list_all"),
     path("", views.products_list_view, name="products_list"),
     path("add/", views.products_add_view, name="products_add"),
     path(

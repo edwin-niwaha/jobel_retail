@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Category, Volume, ProductVolume, Product, ProductImage
 from apps.inventory.models import Inventory
 
@@ -52,6 +53,17 @@ class ProductVolumeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Dynamically populate the volume choices
         self.fields["volume"].queryset = Volume.objects.all()
+
+    def clean_volume(self):
+        volume = self.cleaned_data.get("volume")
+        # Check if a ProductVolume with the same product and volume already exists
+        if (
+            ProductVolume.objects.filter(product=self.product, volume=volume)
+            .exclude(id=self.instance.id)
+            .exists()
+        ):
+            raise ValidationError(f"Volume already assigned to this product.")
+        return volume
 
     def save(self, commit=True):
         product_volume = super().save(commit=False)

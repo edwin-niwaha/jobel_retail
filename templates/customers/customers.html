@@ -3,22 +3,24 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Create new customer and print button -->
     <div class="row mb-3">
-        <div class="col">
-            <a href="{% url 'customers:customers_add' %}" class="btn btn-success font-weight-bold">
-                <i class="mdi mdi-plus mr-2"></i> Add customer
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+            <a href="{% url 'customers:customers_add' %}" class="btn btn-dark ml-2">
+                <i class="mdi mdi-plus mr-2"></i>
+                Add Customer
             </a>
-            <button title="Print" type="button" class="btn btn-sm ml-3 btn-success" onclick="printDiv('printMe')">
-                <i class="mdi mdi-printer btn-icon-prepend"></i>
-            </button>
+            <div class="d-flex">
+                <button title="Print" type="button" class="btn btn-success ml-2" onclick="printDiv('printMe')">
+                    <i class="mdi mdi-printer btn-icon-prepend"></i>
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- DataTable -->
     <div id="printMe" class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Customers</h6>
+            <h3>{{ table_title|upper }}</h3>
         </div>
         <div class="card-body">
             <div class="table-responsive">

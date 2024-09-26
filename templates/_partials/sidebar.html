@@ -74,12 +74,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventory:inventory-report' %}">
-                            <i class="mdi mdi-file-chart menu-icon"></i>
-                            Inventory Report
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link active" href="{% url 'products:stock_alerts' %}" target="_self">
                             <i class="mdi mdi-alert menu-icon"></i>
                             Stock Alerts
@@ -106,41 +100,55 @@
 
         {% if user.profile.role == 'administrator' %}
         <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic1" aria-expanded="false"
+            <a class="nav-link" data-toggle="collapse" href="#financeSubmenu" aria-expanded="false"
                 aria-controls="ui-basic1">
                 <i class="mdi mdi-bank menu-icon"></i>
                 <span class="menu-title">Finance</span>
                 <i class="menu-arrow"></i>
             </a>
-            <div class="collapse" id="ui-basic1">
+            <div class="collapse" id="financeSubmenu">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">
+                        <a class="nav-link" href="{% url 'finance:chart_of_accounts_list' %}">
+                            <i class="mdi mdi-account-plus menu-icon"></i>
+                            Chart of A/Cs
+                        </a>
+                    </li>
+                    {% comment %} <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:add_income' %}">
+                            <i class="mdi mdi-plus-circle-outline menu-icon"></i>
+                            Add Income
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:add_expense' %}">
+                            <i class="mdi mdi-minus-circle-outline menu-icon"></i>
+                            Add Expense
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:profit_and_loss' %}">
                             <i class="mdi mdi-chart-line menu-icon"></i>
                             Profit & Loss
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">
+                        <a class="nav-link" href="{% url 'finance:cash_flow' %}">
                             <i class="mdi mdi-cash-multiple menu-icon"></i>
                             Cash Flow
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">
+                        <a class="nav-link" href="{% url 'finance:balance_sheet' %}">
                             <i class="mdi mdi-book menu-icon"></i>
                             Balance Sheet
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">
-                            <i class="mdi mdi-clipboard-list menu-icon"></i>
-                            Expense Tracking
-                        </a>
-                    </li>
+                    </li> {% endcomment %}
                 </ul>
             </div>
         </li>
+
         {% else %}
         <li class="nav-item">
             <a class="nav-link" href="#" onclick="showMessageSettings(event)">
@@ -174,21 +182,33 @@
             <div class="collapse" id="ui-basic2">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" target="_self">
+                        <a class="nav-link" href="{% url 'inventory:inventory-report' %}">
                             <i class="mdi mdi-file-chart menu-icon"></i>
-                            Sales Reports
+                            Inventory Report
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="#" target="_self">
-                            <i class="mdi mdi-package-variant menu-icon"></i>
-                            Inventory Reports
+                            <i class="mdi mdi-file-chart menu-icon"></i>
+                            Sales Report
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="#" target="_self">
                             <i class="mdi mdi-account-multiple menu-icon"></i>
-                            Customer Reports
+                            Customer Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-account-multiple menu-icon"></i>
+                            Supplier Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" target="_self">
+                            <i class="mdi mdi-account-multiple menu-icon"></i>
+                            Audit Logs
                         </a>
                     </li>
                 </ul>

@@ -164,6 +164,12 @@ def categories_delete_view(request, category_id):
         return redirect("products:categories_list")
 
 
+# # =================================== volumes(ML) List view ===================================
+def volume_list(request):
+    volumes = Volume.objects.all()
+    return render(request, "products/volume_ml_list.html", {"volumes": volumes})
+
+
 # # =================================== volumes(ML) add view ===================================
 @login_required
 @admin_or_manager_required
@@ -187,21 +193,21 @@ def volume_add_view(request):
 @login_required
 @admin_or_manager_required
 @transaction.atomic
-def volume_update_view(request, pk):
-    volume = get_object_or_404(Volume, pk=pk)
+def volume_update_view(request, volume_id):
+    volume = get_object_or_404(Volume, id=volume_id)
     if request.method == "POST":
         form = VolumeForm(request.POST, instance=volume)
         if form.is_valid():
             form.save()
-            messages.success(request, "Volume updated successfully.")
-            return redirect(
-                "products:product_volume_list"
-            )  # Redirect to a list or detail view
+            messages.success(
+                request, "Volume updated successfully.", extra_tags="bg-success"
+            )
+            return redirect("products:volume_list")  # Redirect to a list or detail view
     else:
         form = VolumeForm(instance=volume)
 
     return render(
-        request, "products/volume_form.html", {"form": form, "action": "Update"}
+        request, "products/volume_ml_update.html", {"form": form, "action": "Update"}
     )
 
 
@@ -301,7 +307,7 @@ def delete_product_volume_view(request, volume_id):
 
 @login_required
 @admin_or_manager_or_staff_required
-def pts_list(request):
+def products_list_all(request):
     # Fetch products with prefetch_related for volumes and images
     products = Product.objects.prefetch_related("productvolume_set", "images").all()
 
@@ -328,7 +334,7 @@ def pts_list(request):
         "total_price": total_price,
     }
 
-    return render(request, "products/pts.html", context)
+    return render(request, "products/products_list_all.html", context)
 
 
 # =================================== produts list view ===================================
@@ -362,7 +368,6 @@ def products_list_view(request):
     )
 
     context = {
-        "active_icon": "products",
         "products": products,
         "total_price": total_price,
         "total_cost": total_cost,
@@ -381,6 +386,7 @@ def products_add_view(request):
     context = {
         "active_icon": "products_categories",
         "product_status": Product.status.field.choices,
+        "table_title": "Add Product",
     }
 
     if request.method == "POST":
@@ -432,7 +438,7 @@ def products_update_view(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
     context = {
-        "active_icon": "products",
+        "table_title": "Update Product",
         "product_status": Product.status.field.choices,
         "product": product,
         "categories": Category.objects.all(),
@@ -566,6 +572,7 @@ def update_product_image(request):
             "form": form,
             "form_name": "Upload Product Image",
             "products": products,
+            "table_title": "Upload Image",
         },
     )
 

@@ -19,6 +19,7 @@ def inventory_list_view(request):
     inventories = Inventory.objects.select_related("product").all()
     context = {
         "inventories": inventories,
+        "table_title": "Inventory List",
     }
     return render(request, "inventory/inventory_list.html", context)
 
@@ -46,6 +47,9 @@ def inventory_report_view(request):
 @login_required
 @admin_or_manager_or_staff_required
 def inventory_add_view(request):
+    context = {
+        "table_title": "Add Inventory",
+    }
     if request.method == "POST":
         form = InventoryForm(request.POST)
         if form.is_valid():
@@ -58,13 +62,17 @@ def inventory_add_view(request):
             )  # Adjust the redirect as necessary
     else:
         form = InventoryForm()
+        context["form"] = form
 
-    return render(request, "inventory/inventory_add.html", {"form": form})
+    return render(request, "inventory/inventory_add.html", context=context)
 
 
 @login_required
 @admin_or_manager_or_staff_required
 def inventory_update_view(request, pk):
+    context = {
+        "table_title": "Update Inventory",
+    }
     inventory = get_object_or_404(Inventory, pk=pk)
     if request.method == "POST":
         form = InventoryForm(request.POST, instance=inventory)
@@ -76,7 +84,8 @@ def inventory_update_view(request, pk):
             return redirect("inventory:inventory_list")
     else:
         form = InventoryForm(instance=inventory)
-    return render(request, "inventory/inventory_add.html", {"form": form})
+        context["form"] = form
+    return render(request, "inventory/inventory_update.html", context=context)
 
 
 @login_required

@@ -21,6 +21,7 @@ urlpatterns = [
     path("sales/", include("apps.sales.urls")),
     # Orders routes
     path("orders/", include("apps.orders.urls")),
+    path("finance/", include("apps.finance.urls")),
 ]
 
 # Additional URL patterns for debugging and media files in development mode

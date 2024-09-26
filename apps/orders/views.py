@@ -2,6 +2,7 @@ from django.contrib import messages
 import logging
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404, redirect
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
@@ -195,10 +196,28 @@ def orders_to_be_processed_view(request):
         "created_at"
     )
 
-    if not orders:
-        return render(request, "orders/orders_to_be_processed.html", {"orders": orders})
+    table_title = "Orders to be Processed"
 
-    return render(request, "orders/orders_to_be_processed.html", {"orders": orders})
+    return render(
+        request,
+        "orders/orders_to_be_processed.html",
+        {"orders": orders, "table_title": table_title},
+    )
+
+
+@login_required
+def customer_order_history_view(request):
+    try:
+        customer = request.user.customer
+        orders = Order.objects.filter(customer=customer).order_by("-created_at")
+
+        return render(request, "orders/order_history.html", {"orders": orders})
+
+    except ObjectDoesNotExist:
+        messages.error(
+            request, "You do not have a customer profile associated with your account."
+        )
+        return redirect("users-home")
 
 
 @login_required
@@ -229,41 +248,9 @@ def order_report_view(request, order_id):
 
 
 @login_required
-def customer_order_history_view(request):
-    # Fetch all orders for the logged-in user (customer)
-    customer = (
-        request.user.customer
-    )  # Assuming you have a one-to-one link between User and Customer
-    orders = Order.objects.filter(customer=customer).order_by("-created_at")
-
-    # Render the template with the list of orders
-    return render(request, "orders/order_history.html", {"orders": orders})
-
-
-@login_required
 def order_detail_view(request, order_id):
     order = get_object_or_404(Order, id=order_id, customer=request.user.customer)
     return render(request, "orders/order_detail.html", {"order": order})
-
-
-# @login_required
-# def order_process_view(request, order_id):
-#     # Fetch the order object including related details
-#     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
-
-#     if request.method == "POST":
-#         form = OrderStatusForm(request.POST, instance=order)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(
-#                 request, "Order status updated successfully!", extra_tags="bg-success"
-#             )
-#             return redirect("orders:orders_to_be_processed")
-#     else:
-#         form = OrderStatusForm(instance=order)
-
-#     # Render the order processing template with the order and its details
-#     return render(request, "orders/order_process.html", {"order": order, "form": form})
 
 
 @login_required
