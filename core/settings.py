@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "apps.main",
     "apps.authentication",
+    "apps.supplier",
     "apps.products",
     "apps.inventory",
     "apps.customers",
