@@ -25,7 +25,7 @@
                     <h2>Update volume & prices for ... <span class="text-primary">{{ product.name }}</span> </h2>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <!--  -->
                         {{ form|crispy }}

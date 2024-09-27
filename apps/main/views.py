@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.db.models import Min, Max
 
 from apps.products.models import Product, Category
-from apps.sales.models import Sale
+from apps.sales.models import Sale, SaleDetail
 
 from apps.authentication.decorators import (
     admin_or_manager_required,
@@ -68,31 +68,16 @@ def get_total_sales_for_period(start_date, end_date):
     )
 
 
-# =================================== The dashboard view ===================================
+# =================================== The dashboard view ===================================from django.db.models import Sum
+
+
 @login_required
 @admin_or_manager_or_staff_required
 def dashboard(request):
     today = date.today()
     year = today.year
 
-    # Calculate monthly earnings
-    monthly_earnings = [
-        Sale.objects.filter(trans_date__year=year, trans_date__month=month).aggregate(
-            total=Coalesce(Sum("grand_total"), 0.0)
-        )["total"]
-        for month in range(1, 13)
-    ]
-
-    # Calculate annual earnings
-    annual_earnings = Sale.objects.filter(trans_date__year=year).aggregate(
-        total=Coalesce(Sum("grand_total"), 0.0)
-    )["total"]
-    annual_earnings = format(annual_earnings, ".2f")
-
-    # Average monthly earnings
-    avg_month = format(sum(monthly_earnings) / 12, ".2f")
-
-    # Total sales for today, week, and month
+    # Helper function to get total sales for a period
     def get_total_sales_for_period(start_date, end_date):
         return (
             Sale.objects.filter(trans_date__range=[start_date, end_date]).aggregate(
@@ -101,25 +86,39 @@ def dashboard(request):
             or 0
         )
 
+    # Calculate monthly and annual earnings
+    monthly_earnings = [
+        Sale.objects.filter(trans_date__year=year, trans_date__month=month).aggregate(
+            total=Coalesce(Sum("grand_total"), 0.0)
+        )["total"]
+        for month in range(1, 13)
+    ]
+    annual_earnings = format(sum(monthly_earnings), ".2f")
+    avg_month = format(sum(monthly_earnings) / 12, ".2f")
+
+    # Get total sales for today, week, and month
     total_sales_today = get_total_sales_for_period(today, today)
-    start_of_week = today - timedelta(days=today.weekday())
-    total_sales_week = get_total_sales_for_period(start_of_week, today)
-    start_of_month = today.replace(day=1)
-    total_sales_month = get_total_sales_for_period(start_of_month, today)
+    total_sales_week = get_total_sales_for_period(
+        today - timedelta(days=today.weekday()), today
+    )
+    total_sales_month = get_total_sales_for_period(today.replace(day=1), today)
 
     # Top-selling products
     top_products = Product.objects.annotate(
         quantity_sum=Sum("inventory__quantity")
     ).order_by("-quantity_sum")[:3]
 
-    top_products_data = [
-        (p.name, p.inventory.quantity if hasattr(p, "inventory") else 0)
+    # Prepare product names and sold quantities
+    top_products_names_quantities = [
+        (
+            p.name,
+            SaleDetail.objects.filter(product=p).aggregate(
+                total_quantity=Coalesce(Sum("quantity"), 0)
+            )["total_quantity"]
+            or 0,
+        )
         for p in top_products
     ]
-    top_products_data += [("None", 0)] * (3 - len(top_products_data))
-
-    top_products_names = [name for name, _ in top_products_data]
-    top_products_quantity = [quantity for _, quantity in top_products_data]
 
     # Total stock from Inventory
     total_stock = Product.objects.filter(status="ACTIVE").aggregate(
@@ -127,7 +126,6 @@ def dashboard(request):
     )["total"]
 
     context = {
-        "active_icon": "dashboard",
         "products": Product.objects.filter(status="ACTIVE").count(),
         "total_stock": total_stock,
         "categories": Category.objects.count(),
@@ -137,8 +135,7 @@ def dashboard(request):
         "total_sales_today": total_sales_today,
         "total_sales_week": total_sales_week,
         "total_sales_month": total_sales_month,
-        "top_products_names": json.dumps(top_products_names),
-        "top_products_quantity": json.dumps(top_products_quantity),
+        "top_products_names_quantities": top_products_names_quantities,
     }
 
     return render(request, "main/dashboard.html", context)

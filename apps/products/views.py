@@ -242,7 +242,7 @@ def add_product_volume_view(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == "POST":
-        form = ProductVolumeForm(request.POST, product=product)
+        form = ProductVolumeForm(request.POST, request.FILES, product=product)
         if form.is_valid():
             volume_id = form.cleaned_data[
                 "volume"
@@ -280,7 +280,9 @@ def update_product_volume_view(request, product_id, volume_id):
 
     # Handle form submission
     if request.method == "POST":
-        form = ProductVolumeForm(request.POST, instance=product_volume, product=product)
+        form = ProductVolumeForm(
+            request.POST, request.FILES, instance=product_volume, product=product
+        )
         if form.is_valid():
             form.save()
             return redirect("products:product_volume_list", product_id=product.id)

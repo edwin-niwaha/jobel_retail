@@ -1,6 +1,7 @@
 from django.db import models
 from django.forms import model_to_dict
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 
 # Define choices for product status
 STATUS_CHOICES = [
@@ -117,6 +118,13 @@ class ProductVolume(models.Model):
     )
     price = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="Selling Price"
+    )
+    image = models.ImageField(
+        upload_to="product_volume_images/",
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png"])],
+        verbose_name="Product Volume Image",
+        null=True,
+        blank=True,
     )
 
     class Meta:

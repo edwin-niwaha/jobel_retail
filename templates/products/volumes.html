@@ -36,6 +36,7 @@
                         <tr>
                             <th>#</th>
                             <th>Volume (ML)</th>
+                            <th>Image</th>
                             <th class="text-right">Cost Price</th>
                             <th class="text-right">Selling Price</th>
                             <th class="print-hide">Actions</th>
@@ -45,6 +46,14 @@
                         {% for product_volume in product_volumes %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
+                            <td>
+                                {% if product_volume.image %}
+                                <img src="{{ product_volume.image.url }}" alt="{{ product_volume.product.name }}"
+                                    style="max-height: 50px; max-width: 50px;">
+                                {% else %}
+                                <span>No Image</span>
+                                {% endif %}
+                            </td>
                             <td>{{ product_volume.volume.ml }} ML</td>
                             <td class="text-right">{{ product_volume.cost|floatformat:"2"|intcomma  }}</td>
                             <td class="text-right">{{ product_volume.price|floatformat:"2"|intcomma  }}</td>
@@ -63,10 +72,12 @@
                     </tbody>
                     <tfoot>
                         <tr>
+                            <th></th>
                             <th>Total</th>
                             <th>{{ total_ml }} ML</th>
                             <th class="text-right">{{ total_cost|floatformat:"2"|intcomma  }}</th>
                             <th class="text-right">{{ total_price|floatformat:"2"|intcomma  }}</th>
+                            <th class="print-hide"></th>
                         </tr>
                     </tfoot>
                 </table>

@@ -41,9 +41,11 @@ class VolumeForm(forms.ModelForm):
 
 # =================================== ProductVolumeForm form ===================================
 class ProductVolumeForm(forms.ModelForm):
+    MAX_IMAGE_SIZE_MB = 10
+
     class Meta:
         model = ProductVolume
-        fields = ["volume", "cost", "price"]
+        fields = ["volume", "cost", "price", "image"]
         widgets = {
             "volume": forms.Select(attrs={"class": "form-control"}),
         }
@@ -62,8 +64,22 @@ class ProductVolumeForm(forms.ModelForm):
             .exclude(id=self.instance.id)
             .exists()
         ):
-            raise ValidationError(f"Volume already assigned to this product.")
+            raise ValidationError("Volume already assigned to this product.")
         return volume
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+
+        if image:
+            image_size = image.size
+            max_size = self.MAX_IMAGE_SIZE_MB * 1024 * 1024  # Convert MB to bytes
+
+            if image_size > max_size:
+                raise forms.ValidationError(
+                    f"Image size should not exceed {self.MAX_IMAGE_SIZE_MB} MB."
+                )
+
+        return image
 
     def save(self, commit=True):
         product_volume = super().save(commit=False)

@@ -42,20 +42,19 @@
                     <thead>
                         <tr class="bg-primary text-white">
                             <th scope="col">Detail</th>
-                            <th scope="col">Information</th>
+                            <th colspan="2" scope="col">Information</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Product Name Row -->
                         <tr>
                             <th scope="row">Product Name</th>
-                            <td class="alert alert-info mb-0">
+                            <td colspan="2" class="alert alert-info mb-0">
                                 <strong class="h4">{{ product.name }}</strong>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Category</th>
-                            <td>{{ product.category }}</td>
+                            <td colspan="2">{{ product.category }}</td>
                         </tr>
                         <tr>
                             <th scope="row">Volume</th>
@@ -63,12 +62,18 @@
                                 <select name="volume_id" id="volume" form="add-to-cart-form" class="form-control"
                                     required>
                                     {% for product_volume in product_volumes %}
-                                    <option value="{{ product_volume.id }}">
+                                    <option value="{{ product_volume.id }}"
+                                        data-image-url="{% if product_volume.image %}{{ product_volume.image.url }}{% else %}/static/images/no-image.png{% endif %}">
                                         {{ product_volume.volume.ml }} ML - Price:
                                         {{ product_volume.price|floatformat:"2"|intcomma }}
                                     </option>
                                     {% endfor %}
                                 </select>
+                            </td>
+                            <td rowspan="2">
+                                <img id="volume-image"
+                                    src="{% if product_volumes and product_volumes.0.image %}{{ product_volumes.0.image.url }}{% else %}/static/images/no-image.png{% endif %}"
+                                    alt="Product Image" style="max-height: 150px; max-width: 150px;">
                             </td>
                         </tr>
                         <tr>
@@ -77,11 +82,11 @@
                         </tr>
                         <tr>
                             <th scope="row">Gender</th>
-                            <td>{{ product.gender }}</td>
+                            <td colspan="2">{{ product.gender }}</td>
                         </tr>
                         <tr>
                             <th scope="row">Description</th>
-                            <td>{{ product.description|safe }}</td>
+                            <td colspan="2">{{ product.description|safe }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -115,4 +120,18 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for dynamic image update -->
+<script>
+    document.getElementById('volume').addEventListener('change', function () {
+        // Get the selected option
+        var selectedOption = this.options[this.selectedIndex];
+
+        // Get the image URL from the data attribute
+        var imageUrl = selectedOption.getAttribute('data-image-url');
+
+        // Update the image source
+        document.getElementById('volume-image').src = imageUrl;
+    });
+</script>
 {% endblock %}
