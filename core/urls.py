@@ -8,18 +8,14 @@ from django.urls import include, path
 urlpatterns = [
     # Admin route
     path("admin/", admin.site.urls),
-    # Index/Home routes
+    # Main application routes
     path("", include("apps.main.urls")),
-    # Authentication routes
     path("auth/", include("apps.authentication.urls")),
-    # Customer routes
     path("customers/", include("apps.customers.urls")),
-    # Product routes
+    path("supplier/", include("apps.supplier.urls")),
     path("products/", include("apps.products.urls")),
     path("inventory/", include("apps.inventory.urls")),
-    # Sales routes
     path("sales/", include("apps.sales.urls")),
-    # Orders routes
     path("orders/", include("apps.orders.urls")),
     path("finance/", include("apps.finance.urls")),
 ]

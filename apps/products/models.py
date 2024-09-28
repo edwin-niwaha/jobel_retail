@@ -2,6 +2,7 @@ from django.db import models
 from django.forms import model_to_dict
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+from apps.supplier.models import Supplier
 
 # Define choices for product status
 STATUS_CHOICES = [
@@ -66,6 +67,14 @@ class Product(models.Model):
     )
     volumes = models.ManyToManyField(
         Volume, through="ProductVolume", related_name="products"
+    )
+    supplier = models.ForeignKey(
+        Supplier,
+        related_name="products",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Supplier",
     )
     gender = models.CharField(
         choices=GENDER_CHOICES,

@@ -123,6 +123,7 @@ class ProductForm(forms.ModelForm):
             "category",
             "product_type",
             "gender",
+            "supplier",
         ]
         widgets = {
             "name": forms.TextInput(
@@ -139,6 +140,7 @@ class ProductForm(forms.ModelForm):
             "category": forms.Select(attrs={"class": "form-control"}),
             "product_type": forms.Select(attrs={"class": "form-control"}),
             "gender": forms.Select(attrs={"class": "form-control"}),
+            "supplier": forms.Select(attrs={"class": "form-control"}),
         }
         labels = {
             "name": "Product Name",
@@ -147,6 +149,7 @@ class ProductForm(forms.ModelForm):
             "category": "Category",
             "product_type": "Product Type",
             "gender": "Gender",
+            "suppliers": "Suppliers",  # Label for the suppliers field
         }
 
 

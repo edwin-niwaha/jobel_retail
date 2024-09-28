@@ -136,9 +136,6 @@ def customers_update_view(request, customer_id):
 @admin_required
 @transaction.atomic
 def customers_delete_view(request, customer_id):
-    """
-    Handle deletion of a customer by ID.
-    """
     try:
         # Retrieve and delete the customer
         customer = Customer.objects.get(id=customer_id)

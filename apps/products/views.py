@@ -386,7 +386,6 @@ def products_list_view(request):
 @transaction.atomic
 def products_add_view(request):
     context = {
-        "active_icon": "products_categories",
         "product_status": Product.status.field.choices,
         "table_title": "Add Product",
     }
