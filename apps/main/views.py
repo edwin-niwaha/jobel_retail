@@ -18,6 +18,10 @@ from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,
 )
 
+from .utils import (
+    get_top_selling_products,
+)
+
 
 # =================================== Home User view  ===================================
 def index(request):
@@ -103,22 +107,8 @@ def dashboard(request):
     )
     total_sales_month = get_total_sales_for_period(today.replace(day=1), today)
 
-    # Top-selling products
-    top_products = Product.objects.annotate(
-        quantity_sum=Sum("inventory__quantity")
-    ).order_by("-quantity_sum")[:3]
-
-    # Prepare product names and sold quantities
-    top_products_names_quantities = [
-        (
-            p.name,
-            SaleDetail.objects.filter(product=p).aggregate(
-                total_quantity=Coalesce(Sum("quantity"), 0)
-            )["total_quantity"]
-            or 0,
-        )
-        for p in top_products
-    ]
+    # Get top-selling products using the new method
+    top_products = get_top_selling_products()
 
     # Total stock from Inventory
     total_stock = Product.objects.filter(status="ACTIVE").aggregate(
@@ -135,7 +125,7 @@ def dashboard(request):
         "total_sales_today": total_sales_today,
         "total_sales_week": total_sales_week,
         "total_sales_month": total_sales_month,
-        "top_products_names_quantities": top_products_names_quantities,
+        "top_products": top_products,
     }
 
     return render(request, "main/dashboard.html", context)
