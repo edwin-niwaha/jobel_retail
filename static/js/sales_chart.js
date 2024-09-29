@@ -17,11 +17,10 @@ async function fetchSalesData() {
 async function renderChart() {
   const salesData = await fetchSalesData();
 
-  if (!salesData) {
-    // Handle case when sales data is not available (due to error)
-    alert("Failed to load sales data.");
-    return;
-  }
+  // if (!salesData) {
+  //   alert("Failed to load sales data.");
+  //   return;
+  // }
 
   const ctx = document.getElementById("salesChart").getContext("2d");
   const salesChart = new Chart(ctx, {

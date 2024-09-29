@@ -50,59 +50,70 @@ class ChartOfAccounts(models.Model):
 
 
 # =================================== Transaction ===================================
+TRANSACTION_TYPE_CHOICES = [
+    ("debit", "Debit"),
+    ("credit", "Credit"),
+]
+
+
 class Transaction(models.Model):
-    ACCOUNT_ROLE_CHOICES = [
-        ("paying", "Paying Account"),
-        ("receiving", "Receiving Account"),
-    ]
-
-    TRANSACTION_TYPE_CHOICES = [
-        ("debit", "Debit"),
-        ("credit", "Credit"),
-    ]
-
     account = models.ForeignKey(
-        ChartOfAccounts, on_delete=models.CASCADE, verbose_name="Account"
+        "ChartOfAccounts", on_delete=models.CASCADE, related_name="transactions"
     )
-    amount = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Transaction Amount"
+    offset_account = models.ForeignKey(
+        "ChartOfAccounts", on_delete=models.CASCADE, related_name="offset_transactions"
     )
-    transaction_type = models.CharField(
-        max_length=6, choices=TRANSACTION_TYPE_CHOICES, verbose_name="Transaction Type"
-    )
-    transaction_date = models.DateField(verbose_name="Transaction Date")
-    description = models.TextField(
-        blank=True, null=True, verbose_name="Transaction Description"
-    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=6, choices=TRANSACTION_TYPE_CHOICES)
+    transaction_date = models.DateField()
+    description = models.TextField(blank=True, null=True)
 
     class Meta:
-        verbose_name = "Transaction"
-        verbose_name_plural = "Transactions"
         ordering = ["transaction_date"]
         db_table = "transactions"
+        verbose_name = "Transaction"
+        verbose_name_plural = "Transactions"
 
     def __str__(self):
-        return f"{self.account} - {self.transaction_type.capitalize()} {self.amount} on {self.transaction_date}"
+        return f"{self.account} - {self.get_transaction_type_display()} {self.amount} on {self.transaction_date}"
 
     def clean(self):
-        # Ensure the amount is positive
         if self.amount <= 0:
             raise ValidationError("Transaction amount must be positive.")
 
-        # Ensure debit transactions align with paying accounts and credit with receiving accounts
-        if self.transaction_type == "debit" and self.account.account_role != "paying":
-            raise ValidationError(
-                "Debit transactions must be associated with a paying account."
-            )
-        if (
-            self.transaction_type == "credit"
-            and self.account.account_role != "receiving"
-        ):
-            raise ValidationError(
-                "Credit transactions must be associated with a receiving account."
-            )
-
     def save(self, *args, **kwargs):
-        # Run the clean method before saving
-        self.clean()
+        """
+        Override save to ensure double-entry accounting.
+        Creates both the debit and credit entries, but only once.
+        """
+        # Use a flag to prevent creating an infinite loop of offset transactions
+        if not getattr(self, "_is_offset", False):
+            # Create the corresponding offset transaction
+            self.create_offset_transaction()
+
         super().save(*args, **kwargs)
+
+    def create_offset_transaction(self):
+        """
+        Create the opposite transaction (credit for debit, and vice versa) to maintain double-entry accounting.
+        """
+        # Determine the opposite transaction type
+        offset_transaction_type = (
+            "credit" if self.transaction_type == "debit" else "debit"
+        )
+
+        # Create the offset transaction and mark it as an offset transaction
+        offset_transaction = Transaction(
+            account=self.offset_account,
+            offset_account=self.account,  # Swap the accounts for double-entry
+            amount=self.amount,
+            transaction_type=offset_transaction_type,
+            transaction_date=self.transaction_date,
+            description=f"Offset for {self.get_transaction_type_display()} transaction",
+        )
+
+        # Set a flag to prevent recursion
+        offset_transaction._is_offset = True
+
+        # Save the offset transaction
+        offset_transaction.save()

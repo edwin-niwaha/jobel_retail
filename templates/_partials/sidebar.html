@@ -119,12 +119,19 @@
                             Chart of A/Cs
                         </a>
                     </li>
-                    {% comment %} <li class="nav-item">
-                        <a class="nav-link" href="{% url 'finance:add_income' %}">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:income_add' %}">
                             <i class="mdi mdi-plus-circle-outline menu-icon"></i>
                             Add Income
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:ledger_report' %}">
+                            <i class="mdi mdi-book-open menu-icon"></i>
+                            All Legders
+                        </a>
+                    </li>
+                    {% comment %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'finance:add_expense' %}">
                             <i class="mdi mdi-minus-circle-outline menu-icon"></i>
@@ -158,7 +165,7 @@
         <li class="nav-item">
             <a class="nav-link" href="#" onclick="showMessageSettings(event)">
                 <i class="mdi mdi-bank menu-icon"></i>
-                <span class="menu-title">Finance & Accounts</span>
+                <span class="menu-title">Finance</span>
             </a>
         </li>
         {% endif %}

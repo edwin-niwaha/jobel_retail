@@ -2,11 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.db import transaction
 from django.shortcuts import render, redirect
-from .forms import ChartOfAccountsForm
-from .models import ChartOfAccounts
+from datetime import datetime, date
+from .forms import ChartOfAccountsForm, IncomeTransactionForm
+from .models import ChartOfAccounts, Transaction
+from .utils import generate_ledger_report
 
 from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,
@@ -16,17 +18,6 @@ from apps.authentication.decorators import (
 
 
 # =================================== Account List view ===================================
-# @login_required
-# @admin_or_manager_or_staff_required
-# def chart_of_accounts_list_view(request):
-#     accounts = ChartOfAccounts.objects.all()
-#     context = {
-#         "accounts": accounts,
-#         "table_title": "Chart of Accounts",
-#     }
-#     return render(request, "finance/chart_of_accounts_list.html", context)
-
-
 def chart_of_accounts_list_view(request):
     accounts = ChartOfAccounts.objects.all()  # Retrieve all accounts
     accounts_by_type = {}  # Dictionary to group accounts by type
@@ -121,3 +112,116 @@ def chart_of_account_delete_view(request, account_id):
         print(f"Error deleting account: {e}")
 
     return redirect("finance:chart_of_accounts_list")
+
+
+# =================================== Income transaction creation view ===================================
+@login_required
+@admin_or_manager_required
+@transaction.atomic
+def income_transaction_create_view(request):
+    if request.method == "POST":
+        form = IncomeTransactionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Income transaction posted successfully.")
+            return redirect("finance:income_add")
+    else:
+        form = IncomeTransactionForm()
+
+    context = {
+        "form": form,
+        "form_title": "Add New Income Transaction",
+    }
+
+    return render(request, "finance/income_add.html", context)
+
+
+# =================================== Income List view ===================================
+@login_required
+@admin_or_manager_required
+def income_transaction_list_view(request):
+    transactions = Transaction.objects.all()
+    # .filter(transaction_type="credit")
+    # Add context with table title
+    context = {
+        "transactions": transactions,
+        "table_title": "Income Transactions",
+    }
+
+    return render(request, "finance/income_list.html", context)
+
+
+# =================================== ledger_report ist view ===================================
+
+
+def get_financial_year_dates():
+    """Returns the start and end dates for the current financial year."""
+    today = date.today()
+
+    # Check if today is after July 1st (start of the financial year)
+    if today.month >= 7:
+        start_date = date(today.year, 7, 1)  # July 1st of the current year
+        end_date = date(today.year + 1, 6, 30)  # June 30th of the next year
+    else:
+        start_date = date(today.year - 1, 7, 1)  # July 1st of the previous year
+        end_date = date(today.year, 6, 30)  # June 30th of the current year
+
+    return start_date, end_date
+
+
+@login_required
+@admin_or_manager_required
+def ledger_report_view(request):
+    selected_account_id = request.GET.get("account_id")  # Get selected account ID
+    ledger_data = []
+    accounts = ChartOfAccounts.objects.all()  # Fetch all accounts for the dropdown
+    total_debits = 0
+    total_credits = 0
+
+    # Get the start and end dates for the current financial year
+    financial_year_start, financial_year_end = get_financial_year_dates()
+
+    # Use query parameters or default to the financial year range
+    start_date = request.GET.get("start_date") or financial_year_start
+    end_date = request.GET.get("end_date") or financial_year_end
+
+    selected_account = None
+
+    if selected_account_id:
+        selected_account = get_object_or_404(ChartOfAccounts, id=selected_account_id)
+
+        ledger_data = Transaction.objects.filter(
+            account=selected_account, transaction_date__range=[start_date, end_date]
+        ).order_by("transaction_date")
+
+        running_balance = 0
+        for transaction in ledger_data:
+            if transaction.transaction_type == "debit":
+                transaction.debit = transaction.amount
+                transaction.credit = 0
+                total_debits += transaction.amount
+            elif transaction.transaction_type == "credit":
+                transaction.debit = 0
+                transaction.credit = transaction.amount
+                total_credits += transaction.amount
+            else:
+                transaction.debit = 0
+                transaction.credit = 0
+
+            running_balance += transaction.debit - transaction.credit
+            transaction.running_balance = running_balance
+
+    return render(
+        request,
+        "finance/ledger_report.html",
+        {
+            "ledger_data": ledger_data,
+            "accounts": accounts,
+            "selected_account": selected_account,
+            "selected_account_id": selected_account_id,
+            "start_date": start_date,
+            "end_date": end_date,
+            "total_debits": total_debits,
+            "total_credits": total_credits,
+        },
+    )

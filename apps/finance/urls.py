@@ -6,16 +6,26 @@ app_name = "finance"
 urlpatterns = [
     path("add-account/", views.add_chart_of_account_view, name="add_chart_of_account"),
     path("accounts/", views.chart_of_accounts_list_view, name="chart_of_accounts_list"),
-    # Update customer
     path(
         "update/<str:account_id>/",
         views.chart_of_account_update_view,
         name="chart_of_account_update",
     ),
-    # Delete customer
     path(
         "delete/<str:account_id>/",
         views.chart_of_account_delete_view,
         name="chart_of_account_delete",
     ),
+    path(
+        "income/add/",
+        views.income_transaction_create_view,
+        name="income_add",
+    ),
+    path("income/", views.income_transaction_list_view, name="income_list"),
+    path("ledger_report/", views.ledger_report_view, name="ledger_report"),  # No ID
+    path(
+        "ledger_report/<int:account_id>/",
+        views.ledger_report_view,
+        name="ledger_report_with_id",
+    ),  # With ID
 ]
