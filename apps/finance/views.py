@@ -6,9 +6,8 @@ from django.db.models import Sum, F
 from django.db import transaction
 from django.shortcuts import render, redirect
 from datetime import datetime, date
-from .forms import ChartOfAccountsForm, IncomeTransactionForm
+from .forms import ChartOfAccountsForm, IncomeTransactionForm, ExpenseTransactionForm
 from .models import ChartOfAccounts, Transaction
-from .utils import generate_ledger_report
 
 from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,
@@ -123,7 +122,11 @@ def income_transaction_create_view(request):
         form = IncomeTransactionForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Income transaction posted successfully.")
+            messages.success(
+                request,
+                "Income transaction posted successfully.",
+                extra_tags="bg-success",
+            )
             return redirect("finance:income_add")
     else:
         form = IncomeTransactionForm()
@@ -136,24 +139,33 @@ def income_transaction_create_view(request):
     return render(request, "finance/income_add.html", context)
 
 
-# =================================== Income List view ===================================
+# =================================== expense add view ===================================
 @login_required
 @admin_or_manager_required
-def income_transaction_list_view(request):
-    transactions = Transaction.objects.all()
-    # .filter(transaction_type="credit")
-    # Add context with table title
+@transaction.atomic
+def expense_transaction_create_view(request):
+    if request.method == "POST":
+        form = ExpenseTransactionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                "Expense transaction posted successfully.",
+                extra_tags="bg-success",
+            )
+            return redirect("finance:expense_add")
+    else:
+        form = ExpenseTransactionForm()
+
     context = {
-        "transactions": transactions,
-        "table_title": "Income Transactions",
+        "form": form,
+        "form_title": "Add New Expense Transaction",
     }
 
-    return render(request, "finance/income_list.html", context)
+    return render(request, "finance/expense_add.html", context)
 
 
 # =================================== ledger_report ist view ===================================
-
-
 def get_financial_year_dates():
     """Returns the start and end dates for the current financial year."""
     today = date.today()

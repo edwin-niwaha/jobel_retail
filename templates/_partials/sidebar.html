@@ -125,20 +125,14 @@
                             Add Income
                         </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'finance:ledger_report' %}">
-                            <i class="mdi mdi-book-open menu-icon"></i>
-                            All Legders
-                        </a>
-                    </li>
-                    {% comment %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'finance:add_expense' %}">
+                        <a class="nav-link" href="{% url 'finance:expense_add' %}">
                             <i class="mdi mdi-minus-circle-outline menu-icon"></i>
                             Add Expense
                         </a>
                     </li>
-
+                    {% comment %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'finance:profit_and_loss' %}">
                             <i class="mdi mdi-chart-line menu-icon"></i>
@@ -157,6 +151,12 @@
                             Balance Sheet
                         </a>
                     </li> {% endcomment %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:ledger_report' %}">
+                            <i class="mdi mdi-book-open menu-icon"></i>
+                            All Legders
+                        </a>
+                    </li>
                 </ul>
             </div>
         </li>

@@ -10,6 +10,9 @@
                 <i class="mdi mdi-arrow-left-bold mr-2"></i>
                 Go back
             </a>
+            <button title="Print" type="button" class="btn btn-success ml-2" onclick="printDiv('printMe')">
+                <i class="mdi mdi-printer btn-icon-prepend"></i>
+            </button>
             <form method="GET" action="{% url 'finance:ledger_report' %}">
                 {% csrf_token %}
                 <div class="form-row d-flex align-items-center">
@@ -42,13 +45,15 @@
             </form>
         </div>
 
-        <div class="card-body">
+        <div id="printMe" class="card-body">
             <!-- Report Header -->
             <div class="report-header text-center my-2">
-                <h3>Ledger Report for
+                <h3>
                     {% if selected_account %}
-                    <span class="text-primary">{{ selected_account.account_name }}</span>
-                    from {{ start_date }} to {{ end_date }}
+                    <span class="text-primary">{{selected_account.account_number}} -
+                        {{ selected_account.account_name }}</span>
+                    Ledger report from <span class="text-primary">{{ start_date }}</span> to <span
+                        class="text-primary">{{ end_date }}</span>
                     {% else %}
                     <span class="text-secondary">.../.../.....</span>
                     {% endif %}
@@ -60,7 +65,6 @@
                     <thead class="thead-dark">
                         <tr>
                             <th>Date</th>
-                            <th>Account</th>
                             <th>Description</th>
                             <th>Debits</th>
                             <th>Credits</th>
@@ -71,7 +75,6 @@
                         {% for item in ledger_data %}
                         <tr>
                             <td>{{ item.transaction_date }}</td>
-                            <td>{{ item.account }}</td>
                             <td>{{ item.description }}</td>
                             <td class="text-right">{{ item.debit|floatformat:"2"|intcomma }}</td>
                             <td class="text-right">{{ item.credit|floatformat:"2"|intcomma }}</td>
@@ -85,7 +88,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3"><strong>Total</strong></td>
+                            <td colspan="2"><strong>Total</strong></td>
                             <td class="text-right"><strong>{{ total_debits|floatformat:"2"|intcomma }}</strong></td>
                             <!-- Display total debits -->
                             <td class="text-right"><strong>{{ total_credits|floatformat:"2"|intcomma }}</strong></td>

@@ -21,7 +21,11 @@ urlpatterns = [
         views.income_transaction_create_view,
         name="income_add",
     ),
-    path("income/", views.income_transaction_list_view, name="income_list"),
+    path(
+        "expense/add/",
+        views.expense_transaction_create_view,
+        name="expense_add",
+    ),
     path("ledger_report/", views.ledger_report_view, name="ledger_report"),  # No ID
     path(
         "ledger_report/<int:account_id>/",
