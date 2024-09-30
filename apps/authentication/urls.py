@@ -1,4 +1,4 @@
-from django.urls import path, include, re_path
+from django.urls import path
 from django.contrib.auth import views as auth_views
 from apps.authentication.forms import LoginForm
 from . import views
@@ -58,6 +58,4 @@ urlpatterns = [
         views.validate_user_feedback,
         name="validate_user_feedback",
     ),
-    # Social Authentication
-    re_path(r"^oauth/", include("social_django.urls", namespace="social")),
 ]

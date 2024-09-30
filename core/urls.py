@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 # Define the URL patterns for the project
 urlpatterns = [
@@ -18,6 +18,8 @@ urlpatterns = [
     path("sales/", include("apps.sales.urls")),
     path("orders/", include("apps.orders.urls")),
     path("finance/", include("apps.finance.urls")),
+    # Social Authentication
+    re_path(r"^oauth/", include("social_django.urls", namespace="social")),
 ]
 
 # Additional URL patterns for debugging and media files in development mode
