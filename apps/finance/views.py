@@ -6,7 +6,12 @@ from django.db.models import Sum, F
 from django.db import transaction
 from django.shortcuts import render, redirect
 from datetime import datetime, date
-from .forms import ChartOfAccountsForm, IncomeTransactionForm, ExpenseTransactionForm
+from .forms import (
+    ChartOfAccountsForm,
+    IncomeTransactionForm,
+    ExpenseTransactionForm,
+    TransactionFormSet,
+)
 from .models import ChartOfAccounts, Transaction
 
 from apps.authentication.decorators import (
@@ -163,6 +168,27 @@ def expense_transaction_create_view(request):
     }
 
     return render(request, "finance/expense_add.html", context)
+
+
+# =================================== multi-journal entry view ===================================
+@login_required
+@admin_or_manager_required  # Assuming this decorator is defined somewhere
+@transaction.atomic
+def multi_journal_view(request):
+    if request.method == "POST":
+        formset = TransactionFormSet(request.POST)
+        if formset.is_valid():
+            transactions = formset.save(commit=False)
+            for transaction in transactions:
+                transaction.save()  # Save each transaction
+            messages.success(request, "Transactions saved successfully.")
+            return redirect(
+                "finance:multi_journal"
+            )  # Change 'success_url' to your desired redirect
+    else:
+        formset = TransactionFormSet(queryset=Transaction.objects.none())
+
+    return render(request, "finance/multi_journal_entry_add.html", {"formset": formset})
 
 
 # =================================== ledger_report ist view ===================================

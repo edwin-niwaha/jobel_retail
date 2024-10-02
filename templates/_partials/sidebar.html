@@ -132,6 +132,13 @@
                             Add Expense
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'finance:multi_journal' %}">
+                            <i class="mdi mdi-book menu-icon"></i>
+                            Multi Journal
+                        </a>
+                    </li>
+
                     {% comment %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'finance:profit_and_loss' %}">
@@ -151,6 +158,7 @@
                             Balance Sheet
                         </a>
                     </li> {% endcomment %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'finance:ledger_report' %}">
                             <i class="mdi mdi-book-open menu-icon"></i>

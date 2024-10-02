@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Journal Entry</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .table th,
+        .table td {
+            vertical-align: middle;
+            /* Align content vertically */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Multi Journal Entry</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Account</th>
+                            <th>Offset A/C</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                        <tr>
+                            <td>{{ form.account }}</td>
+                            <td>{{ form.offset_account }}</td>
+                            <td>{{ form.amount }}</td>
+                            <td>{{ form.transaction_type }}</td>
+                            <td>{{ form.transaction_date }}</td>
+                            <td>{{ form.description }}</td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm"
+                                    onclick="removeRow(this)">Remove</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No transactions available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save Transactions</button>
+                <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function removeRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        function addRow() {
+            const tableBody = document.querySelector('tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" class="form-control" name="account" required></td>
+                <td><input type="text" class="form-control" name="offset_account" required></td>
+                <td><input type="number" class="form-control" name="amount" step="0.01" required></td>
+                <td>
+                    <select name="transaction_type" class="form-control" required>
+                        <option value="debit">Debit</option>
+                        <option value="credit">Credit</option>
+                    </select>
+                </td>
+                <td><input type="date" class="form-control" name="transaction_date" required></td>
+                <td><textarea name="description" class="form-control" rows="1"></textarea></td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button>
+                </td>
+            `;
+            tableBody.appendChild(newRow);
+        }
+    </script>
+</body>
+
+</html>

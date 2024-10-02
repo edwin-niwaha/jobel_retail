@@ -26,6 +26,7 @@ urlpatterns = [
         views.expense_transaction_create_view,
         name="expense_add",
     ),
+    path("multi-journal/", views.multi_journal_view, name="multi_journal"),
     path("ledger_report/", views.ledger_report_view, name="ledger_report"),  # No ID
     path(
         "ledger_report/<int:account_id>/",

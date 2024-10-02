@@ -1,10 +1,11 @@
 from django import forms
+from django.forms import modelformset_factory
 from .models import Transaction, ChartOfAccounts
 from django.core.exceptions import ValidationError
 import datetime
 
 
-# =================================== coa form ===================================
+# =================================== ChartOfAccountsForm ===================================
 class ChartOfAccountsForm(forms.ModelForm):
     class Meta:
         model = ChartOfAccounts
@@ -42,7 +43,7 @@ class ChartOfAccountsForm(forms.ModelForm):
         return account_name
 
 
-# =================================== income form ===================================
+# =================================== IncomeTransactionForm ===================================
 class IncomeTransactionForm(forms.ModelForm):
     offset_account = forms.ModelChoiceField(
         queryset=ChartOfAccounts.objects.filter(account_type="asset"),
@@ -124,7 +125,7 @@ class IncomeTransactionForm(forms.ModelForm):
         return instance
 
 
-# =================================== expsense form ===================================
+# =================================== ExpenseTransactionForm ===================================
 class ExpenseTransactionForm(forms.ModelForm):
     offset_account = forms.ModelChoiceField(
         queryset=ChartOfAccounts.objects.filter(account_type="asset"),
@@ -204,3 +205,48 @@ class ExpenseTransactionForm(forms.ModelForm):
             instance.save()
 
         return instance
+
+
+# =================================== MultiJournalEntryForm ===================================
+class TransactionForm(forms.ModelForm):
+    class Meta:
+        model = Transaction
+        fields = [
+            "account",
+            "offset_account",
+            "amount",
+            "transaction_type",
+            "transaction_date",
+            "description",
+        ]
+        widgets = {
+            "account": forms.Select(
+                attrs={"class": "form-control", "placeholder": "Select Account"}
+            ),
+            "offset_account": forms.Select(
+                attrs={"class": "form-control", "placeholder": "Select Offset Account"}
+            ),
+            "amount": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Enter Amount",
+                    "step": "0.01",
+                }
+            ),
+            "transaction_type": forms.Select(attrs={"class": "form-control"}),
+            "transaction_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "description": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Narrations",
+                }
+            ),
+        }
+
+
+# Create the formset
+from django.forms import modelformset_factory
+
+TransactionFormSet = modelformset_factory(Transaction, form=TransactionForm, extra=1)
