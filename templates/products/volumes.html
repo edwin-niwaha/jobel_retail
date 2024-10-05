@@ -35,11 +35,12 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Volume (ML)</th>
                             <th>Image</th>
+                            <th>Type</th>
+                            <th>Volume (ML)</th>
                             <th class="text-right">Cost Price</th>
                             <th class="text-right">Selling Price</th>
-                            <th class="print-hide">Actions</th>
+                            <th colspan="2" class="print-hide">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,15 +55,58 @@
                                 <span>No Image</span>
                                 {% endif %}
                             </td>
+                            <td>{{ product_volume.product_type }}</td>
                             <td>{{ product_volume.volume.ml }} ML</td>
                             <td class="text-right">{{ product_volume.cost|floatformat:"2"|intcomma  }}</td>
                             <td class="text-right">{{ product_volume.price|floatformat:"2"|intcomma  }}</td>
-                            <td class="print-hide">
+                            <td class="text-center print-hide">
                                 <a href="{% url 'products:update_product_volume' product.id product_volume.id %}"
-                                    class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'products:delete_product_volume' product_volume.id %}"
-                                    class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                                    class="text-decoration-none"
+                                    onclick="return confirm('Are you sure you want to update this record?');">
+                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
+                                        title="Update product volume">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </a>
                             </td>
+                            {% if user.profile.role == 'administrator' or user.profile.role == 'manager' %}
+                            <td class="text-center print-hide">
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal{{ product_volume.id }}" title="Delete product">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                                <div class="modal fade" id="deleteModal{{ product_volume.id }}" tabindex="-1"
+                                    aria-labelledby="deleteModalLabel{{ product_volume.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ product_volume.id }}">
+                                                    Delete
+                                                    Product</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close">X</button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the record: <h3>
+                                                    {{ product_volume.product_type }} of
+                                                    {{ product_volume.volume.ml }}ML ?
+                                                </h3>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <a href="{% url 'products:delete_product_volume' product_volume.id %}"
+                                                    class="text-decoration-none">
+                                                    <button type="button" class="btn btn-danger">Delete</button>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            {% endif %}
                         </tr>
                         {% empty %}
                         <tr>
@@ -73,10 +117,12 @@
                     <tfoot>
                         <tr>
                             <th></th>
+                            <th></th>
                             <th>Total</th>
                             <th>{{ total_ml }} ML</th>
                             <th class="text-right">{{ total_cost|floatformat:"2"|intcomma  }}</th>
                             <th class="text-right">{{ total_price|floatformat:"2"|intcomma  }}</th>
+                            <th class="print-hide"></th>
                             <th class="print-hide"></th>
                         </tr>
                     </tfoot>

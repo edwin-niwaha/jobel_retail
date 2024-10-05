@@ -34,10 +34,9 @@
                             <th>Product</th>
                             <th>Category</th>
                             <th>Gender</th>
-                            <th>Type</th>
                             <th>Supplier</th>
                             <th class="text-center print-hide">Status</th>
-                            <th colspan="3" class="text-center print-hide">Actions</th>
+                            <th colspan="3" class="text-center print-hide">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,7 +47,6 @@
                             <td>{{ product.name }}</td>
                             <td>{{ product.category }}</td>
                             <td>{{ product.gender }}</td>
-                            <td>{{ product.product_type }}</td>
                             <td>{{ product.supplier }}</td>
                             <td class="text-center print-hide">
                                 {% if product.status == "ACTIVE" %}

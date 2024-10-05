@@ -36,7 +36,6 @@
                         <th>Volume ML</th>
                         <th class="text-right">Cost</th>
                         <th class="text-right">Price</th>
-                        {% comment %} <th>Images</th> {% endcomment %}
                     </tr>
                 </thead>
                 <tbody>
@@ -57,7 +56,8 @@
                             {% endif %}
                         </td>
                         <td rowspan="{{ product_volumes.count }}">{{ product.gender }}</td>
-                        <td rowspan="{{ product_volumes.count }}">{{ product.product_type }}</td>
+                        {% comment %} <td rowspan="{{ product_volumes.count }}">{{ product.product_type }}</td>
+                        {% endcomment %}
                         <td class="text-center" rowspan="{{ product_volumes.count }}">{{ product.stock }}</td>
                         {% endif %}
                         <td class="text-center">{{ product_volume.volume.ml }} ML</td>
@@ -90,10 +90,9 @@
                             {% endif %}
                         </td>
                         <td>{{ product.gender }}</td>
-                        <td>{{ product.product_type }}</td>
+                        {% comment %} <td>{{ product.product_type }}</td> {% endcomment %}
                         <td class="text-center">{{ product.stock }}</td>
-                        <td colspan="3">No volumes available.</td>
-                        {% comment %} <td>No images available.</td> {% endcomment %}
+                        <td colspan="3">No products available.</td>
                     </tr>
                     {% endif %}
                     {% endwith %}

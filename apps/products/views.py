@@ -237,33 +237,28 @@ def product_volume_list_view(request, product_id):
 # =================================== Product volumes add view ===================================
 @login_required
 @admin_or_manager_or_staff_required
-@transaction.atomic
 def add_product_volume_view(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == "POST":
-        form = ProductVolumeForm(request.POST, request.FILES, product=product)
+        form = ProductVolumeForm(request.POST, request.FILES)
+        form.product = product  # Set the product explicitly before validation
+
         if form.is_valid():
-            volume_id = form.cleaned_data[
-                "volume"
-            ].id  # assuming the volume field is called 'volume'
-            if ProductVolume.objects.filter(
-                product=product, volume_id=volume_id
-            ).exists():
-                form.add_error(
-                    None, "Oops! This volume is already associated with the product."
-                )
-            else:
-                try:
-                    form.save()  # Save will use the product passed in the form
-                    messages.success(request, "Volume added successfully!")
+            try:
+                with transaction.atomic():  # Wrap the database operation in an atomic block
+                    form.save()  # The form now handles the uniqueness check
+                    messages.success(
+                        request, "Record added successfully!", extra_tags="bg-success"
+                    )
                     return redirect(
                         "products:product_volume_list", product_id=product.id
                     )
-                except IntegrityError:
-                    form.add_error(None, "An unexpected error occurred while saving.")
+            except IntegrityError:
+                form.add_error(None, "An unexpected error occurred while saving.")
     else:
-        form = ProductVolumeForm(product=product)
+        form = ProductVolumeForm()
+        form.product = product  # Set the product explicitly for the initial form
 
     return render(
         request, "products/volumes_add.html", {"form": form, "product": product}
@@ -278,19 +273,20 @@ def update_product_volume_view(request, product_id, volume_id):
     product = get_object_or_404(Product, id=product_id)
     product_volume = get_object_or_404(ProductVolume, id=volume_id, product=product)
 
-    # Handle form submission
     if request.method == "POST":
         form = ProductVolumeForm(
             request.POST, request.FILES, instance=product_volume, product=product
         )
         if form.is_valid():
             form.save()
+            # Add success message
+            messages.success(
+                request, "Product volume updated successfully!", extra_tags="bg-success"
+            )
             return redirect("products:product_volume_list", product_id=product.id)
     else:
-        # Pre-fill the form with existing product volume data
         form = ProductVolumeForm(instance=product_volume, product=product)
 
-    # Render the update form template
     return render(
         request, "products/volumes_update.html", {"form": form, "product": product}
     )
@@ -303,7 +299,14 @@ def update_product_volume_view(request, product_id, volume_id):
 def delete_product_volume_view(request, volume_id):
     product_volume = get_object_or_404(ProductVolume, id=volume_id)
     product_id = product_volume.product.id
+
+    # Delete the product volume
     product_volume.delete()
+
+    # Add success message
+    messages.success(request, "Record deleted!", extra_tags="bg-danger")
+
+    # Redirect to the product volume list
     return redirect("products:product_volume_list", product_id=product_id)
 
 

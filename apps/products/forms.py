@@ -45,9 +45,10 @@ class ProductVolumeForm(forms.ModelForm):
 
     class Meta:
         model = ProductVolume
-        fields = ["volume", "cost", "price", "image"]
+        fields = ["volume", "product_type", "cost", "price", "image"]
         widgets = {
             "volume": forms.Select(attrs={"class": "form-control"}),
+            "product_type": forms.Select(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -56,16 +57,23 @@ class ProductVolumeForm(forms.ModelForm):
         # Dynamically populate the volume choices
         self.fields["volume"].queryset = Volume.objects.all()
 
-    def clean_volume(self):
-        volume = self.cleaned_data.get("volume")
-        # Check if a ProductVolume with the same product and volume already exists
+    def clean(self):
+        cleaned_data = super().clean()
+        volume = cleaned_data.get("volume")
+        product_type = cleaned_data.get("product_type")
+
+        # Check if a ProductVolume with the same product, volume, and product_type already exists
         if (
-            ProductVolume.objects.filter(product=self.product, volume=volume)
+            ProductVolume.objects.filter(
+                product=self.product, volume=volume, product_type=product_type
+            )
             .exclude(id=self.instance.id)
             .exists()
         ):
-            raise ValidationError("Volume already assigned to this product.")
-        return volume
+            raise ValidationError(
+                "Oops! This combination of volume and product type is already assigned to this product."
+            )
+        return cleaned_data
 
     def clean_image(self):
         image = self.cleaned_data.get("image")
@@ -121,7 +129,6 @@ class ProductForm(forms.ModelForm):
             "description",
             "status",
             "category",
-            "product_type",
             "gender",
             "supplier",
         ]
@@ -138,7 +145,6 @@ class ProductForm(forms.ModelForm):
             ),
             "status": forms.Select(attrs={"class": "form-control"}),
             "category": forms.Select(attrs={"class": "form-control"}),
-            "product_type": forms.Select(attrs={"class": "form-control"}),
             "gender": forms.Select(attrs={"class": "form-control"}),
             "supplier": forms.Select(attrs={"class": "form-control"}),
         }
@@ -147,7 +153,6 @@ class ProductForm(forms.ModelForm):
             "description": "Description",
             "status": "Status",
             "category": "Category",
-            "product_type": "Product Type",
             "gender": "Gender",
             "suppliers": "Suppliers",  # Label for the suppliers field
         }

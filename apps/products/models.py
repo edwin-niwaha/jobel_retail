@@ -82,12 +82,6 @@ class Product(models.Model):
         default="Unisex",
         verbose_name="Targeted Gender",
     )
-    product_type = models.CharField(
-        choices=PRODUCT_TYPE_CHOICES,
-        max_length=10,
-        default="Spray",
-        verbose_name="Product Type",
-    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
@@ -119,6 +113,12 @@ class Product(models.Model):
 
 class ProductVolume(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_type = models.CharField(
+        choices=PRODUCT_TYPE_CHOICES,
+        max_length=10,
+        default="Spray",
+        verbose_name="Type",
+    )
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
 
     # Cost and Price determined by the selected volume for this product
@@ -137,7 +137,7 @@ class ProductVolume(models.Model):
     )
 
     class Meta:
-        unique_together = ("product", "volume")
+        unique_together = ("product", "volume", "product_type")
         verbose_name = "Product Volume"
         verbose_name_plural = "Product Volumes"
 
