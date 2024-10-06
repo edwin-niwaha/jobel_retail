@@ -45,166 +45,167 @@ class ChartOfAccountsForm(forms.ModelForm):
 
 # =================================== IncomeTransactionForm ===================================
 class IncomeTransactionForm(forms.ModelForm):
-    offset_account = forms.ModelChoiceField(
+    paying_account = forms.ModelChoiceField(
         queryset=ChartOfAccounts.objects.filter(account_type="asset"),
-        required=True,  # Ensure an asset account is selected for double-entry
-        label="Offset Account",
+        label="Paying Account",
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+    receiving_account = forms.ModelChoiceField(
+        queryset=ChartOfAccounts.objects.filter(account_type="revenue"),
+        label="Income Account",
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+    amount = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        label="Transaction Amount",
+        required=True,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",  # Bootstrap class
+                "placeholder": "Enter amount",
+            }
+        ),
+    )
+    transaction_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                "class": "form-control",  # Bootstrap class
+                "type": "date",  # HTML5 date input
+            }
+        ),
+        label="Date of Transaction",
+        required=True,
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",  # Bootstrap class
+                "rows": 3,
+                "placeholder": "Optional description",
+            }
+        ),
+        label="Transaction Description",
+        required=False,
     )
 
     class Meta:
         model = Transaction
         fields = [
-            "account",  # Income account (revenue)
+            "paying_account",
+            "receiving_account",
             "amount",
             "transaction_date",
             "description",
-            "offset_account",  # Offset account (e.g., Cash or Bank)
         ]
-        widgets = {
-            "account": forms.Select(
-                attrs={
-                    "class": "form-control",  # Bootstrap styling for the income account
-                }
-            ),
-            "amount": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter Amount",
-                    "min": "0",  # Ensure only positive values
-                }
-            ),
-            "transaction_date": forms.DateInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "date",  # Use HTML5 date picker
-                }
-            ),
-            "description": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Description (optional)",
-                }
-            ),
-            "offset_account": forms.Select(
-                attrs={
-                    "class": "form-control",  # Bootstrap styling for offset account
-                }
-            ),
-        }
-
-        labels = {
-            "account": "Income Account",
-            "amount": "Transaction Amount",
-            "transaction_date": "Transaction Date",
-            "description": "Transaction Description",
-            "offset_account": "Offset Account",
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Limit the queryset to revenue accounts for the income account field
-        self.fields["account"].queryset = ChartOfAccounts.objects.filter(
-            account_type="revenue"
-        )
 
     def save(self, commit=True):
-        """
-        Override save method to set the transaction type to 'credit'
-        for income transactions automatically and ensure double-entry.
-        """
-        # Call super to create the instance without saving to the DB
-        instance = super().save(commit=False)
+        # Create the first transaction entry (receiving account)
+        receiving_transaction = super().save(commit=False)
+        receiving_transaction.account = self.cleaned_data["receiving_account"]
+        receiving_transaction.transaction_type = "credit"  # Automatically set to credit
 
-        # Ensure the transaction type is 'credit'
-        instance.transaction_type = "credit"
-
-        # Save the instance only if commit is True
         if commit:
-            instance.save()
+            receiving_transaction.save()
 
-        return instance
+        # Create the second transaction entry (paying account)
+        paying_transaction = Transaction(
+            account=self.cleaned_data["paying_account"],
+            amount=self.cleaned_data["amount"],
+            transaction_type="debit",  # Automatically set to debit
+            transaction_date=self.cleaned_data["transaction_date"],
+            description=self.cleaned_data["description"],
+        )
+
+        if commit:
+            paying_transaction.save()
+
+        return receiving_transaction
 
 
 # =================================== ExpenseTransactionForm ===================================
 class ExpenseTransactionForm(forms.ModelForm):
-    offset_account = forms.ModelChoiceField(
+    receiving_account = forms.ModelChoiceField(
         queryset=ChartOfAccounts.objects.filter(account_type="asset"),
-        required=True,  # Ensure an asset account is selected for double-entry
-        label="Offset Account",
+        label="Receiving Account",
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+    paying_account = forms.ModelChoiceField(
+        queryset=ChartOfAccounts.objects.filter(account_type="expense"),
+        label="Expense Account",
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+    amount = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        label="Transaction Amount",
+        required=True,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",  # Bootstrap class
+                "placeholder": "Enter amount",
+            }
+        ),
+    )
+    transaction_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                "class": "form-control",  # Bootstrap class
+                "type": "date",  # HTML5 date input
+            }
+        ),
+        label="Date of Transaction",
+        required=True,
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",  # Bootstrap class
+                "rows": 3,
+                "placeholder": "Optional description",
+            }
+        ),
+        label="Transaction Description",
+        required=False,
     )
 
     class Meta:
         model = Transaction
         fields = [
-            "account",  # Expense account (expense)
+            "paying_account",
+            "receiving_account",
             "amount",
             "transaction_date",
             "description",
-            "offset_account",  # Offset account (e.g., Cash or Bank)
         ]
-        widgets = {
-            "account": forms.Select(
-                attrs={
-                    "class": "form-control",  # Bootstrap styling for the expense account
-                }
-            ),
-            "amount": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Enter Amount",
-                    "min": "0",  # Ensure only positive values
-                }
-            ),
-            "transaction_date": forms.DateInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "date",  # Use HTML5 date picker
-                }
-            ),
-            "description": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Description (optional)",
-                }
-            ),
-            "offset_account": forms.Select(
-                attrs={
-                    "class": "form-control",  # Bootstrap styling for offset account
-                }
-            ),
-        }
-
-        labels = {
-            "account": "Expense Account",
-            "amount": "Transaction Amount",
-            "transaction_date": "Transaction Date",
-            "description": "Transaction Description",
-            "offset_account": "Offset Account",
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Limit the queryset to expense accounts for the expense account field
-        self.fields["account"].queryset = ChartOfAccounts.objects.filter(
-            account_type="expense"
-        )
 
     def save(self, commit=True):
-        """
-        Override save method to set the transaction type to 'debit'
-        for expense transactions automatically and ensure double-entry.
-        """
-        # Call super to create the instance without saving to the DB
-        instance = super().save(commit=False)
+        # Create the first transaction entry (paying account)
+        paying_transaction = super().save(commit=False)
+        paying_transaction.account = self.cleaned_data["paying_account"]
+        paying_transaction.transaction_type = "debit"  # Automatically set to debit
 
-        # Ensure the transaction type is 'debit'
-        instance.transaction_type = "debit"
-
-        # Save the instance only if commit is True
         if commit:
-            instance.save()
+            paying_transaction.save()
 
-        return instance
+        # Create the second transaction entry (receiving account)
+        receiving_transaction = Transaction(
+            account=self.cleaned_data["receiving_account"],
+            amount=self.cleaned_data["amount"],
+            transaction_type="credit",  # Automatically set to credit
+            transaction_date=self.cleaned_data["transaction_date"],
+            description=self.cleaned_data["description"],
+        )
+
+        if commit:
+            receiving_transaction.save()
+
+        return paying_transaction
 
 
 # =================================== MultiJournalEntryForm ===================================
@@ -213,18 +214,14 @@ class TransactionForm(forms.ModelForm):
         model = Transaction
         fields = [
             "account",
-            "offset_account",
             "amount",
-            "transaction_type",
-            "transaction_date",
+            "transaction_type",  # Debit or Credit
+            # "transaction_date",
             "description",
         ]
         widgets = {
             "account": forms.Select(
                 attrs={"class": "form-control", "placeholder": "Select Account"}
-            ),
-            "offset_account": forms.Select(
-                attrs={"class": "form-control", "placeholder": "Select Offset Account"}
             ),
             "amount": forms.NumberInput(
                 attrs={
@@ -233,20 +230,18 @@ class TransactionForm(forms.ModelForm):
                     "step": "0.01",
                 }
             ),
-            "transaction_type": forms.Select(attrs={"class": "form-control"}),
-            "transaction_date": forms.DateInput(
-                attrs={"class": "form-control", "type": "date"}
-            ),
+            "transaction_type": forms.Select(
+                attrs={"class": "form-control"}
+            ),  # Ensure this field is included
+            # "transaction_date": forms.DateInput(
+            #     attrs={"class": "form-control", "type": "date"}
+            # ),
             "description": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Narrations",
-                }
+                attrs={"class": "form-control", "placeholder": "Narrations"}
             ),
         }
 
 
-# Create the formset
-from django.forms import modelformset_factory
-
-TransactionFormSet = modelformset_factory(Transaction, form=TransactionForm, extra=1)
+TransactionFormSet = modelformset_factory(
+    Transaction, form=TransactionForm, extra=2  # Allow deleting forms
+)

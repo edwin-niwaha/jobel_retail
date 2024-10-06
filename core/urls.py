@@ -10,14 +10,14 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Main application routes
     path("", include("apps.main.urls")),
-    path("auth/", include("apps.authentication.urls")),
-    path("customers/", include("apps.customers.urls")),
-    path("supplier/", include("apps.supplier.urls")),
-    path("products/", include("apps.products.urls")),
-    path("inventory/", include("apps.inventory.urls")),
-    path("sales/", include("apps.sales.urls")),
-    path("orders/", include("apps.orders.urls")),
-    path("finance/", include("apps.finance.urls")),
+    path("api/auth/", include("apps.authentication.urls")),
+    path("api/customers/", include("apps.customers.urls")),
+    path("api/supplier/", include("apps.supplier.urls")),
+    path("api/products/", include("apps.products.urls")),
+    path("api/inventory/", include("apps.inventory.urls")),
+    path("api/sales/", include("apps.sales.urls")),
+    path("api/orders/", include("apps.orders.urls")),
+    path("api/finance/", include("apps.finance.urls")),
     # Social Authentication
     re_path(r"^oauth/", include("social_django.urls", namespace="social")),
 ]

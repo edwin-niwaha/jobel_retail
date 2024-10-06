@@ -171,24 +171,113 @@ def expense_transaction_create_view(request):
 
 
 # =================================== multi-journal entry view ===================================
+# @login_required
+# @admin_or_manager_required  # Assuming this decorator is defined somewhere
+# @transaction.atomic
+# def multi_journal_view(request):
+#     if request.method == "POST":
+#         formset = TransactionFormSet(request.POST)
+
+#         # Check if the formset is valid
+#         if formset.is_valid():
+#             transactions = formset.save(commit=False)
+#             saved_count = 0  # Count of saved transactions
+
+#             for transaction in transactions:
+#                 transaction.save()  # Save each transaction
+#                 saved_count += 1  # Increment the count for each saved transaction
+
+#             # Only display success message if at least one transaction is saved
+#             if saved_count > 0:
+#                 messages.success(
+#                     request, "Transactions saved successfully.", extra_tags="bg-success"
+#                 )
+#                 return redirect(
+#                     "finance:multi_journal"
+#                 )  # Change 'success_url' to your desired redirect
+#             else:
+#                 messages.warning(
+#                     request,
+#                     "Please fill in the required fields.",
+#                     extra_tags="bg-danger",
+#                 )
+
+#         else:
+#             # Display a message if the formset is invalid
+#             messages.error(
+#                 request,
+#                 "There was an error with your submission. Please correct the errors below.",
+#                 extra_tags="bg-danger",
+#             )
+
+#     else:
+#         formset = TransactionFormSet(queryset=Transaction.objects.none())
+
+#     return render(request, "finance/multi_journal_entry_add.html", {"formset": formset})
+
+
 @login_required
 @admin_or_manager_required  # Assuming this decorator is defined somewhere
 @transaction.atomic
 def multi_journal_view(request):
     if request.method == "POST":
         formset = TransactionFormSet(request.POST)
+        transaction_date = request.POST.get(
+            "transaction_date"
+        )  # Capture the single transaction date
+
         if formset.is_valid():
             transactions = formset.save(commit=False)
-            for transaction in transactions:
-                transaction.save()  # Save each transaction
-            messages.success(request, "Transactions saved successfully.")
-            return redirect(
-                "finance:multi_journal"
-            )  # Change 'success_url' to your desired redirect
-    else:
-        formset = TransactionFormSet(queryset=Transaction.objects.none())
 
-    return render(request, "finance/multi_journal_entry_add.html", {"formset": formset})
+            # Initialize total debits and credits
+            total_debits = 0
+            total_credits = 0
+
+            for transaction in transactions:
+                # Assign the captured transaction date to each transaction
+                transaction.transaction_date = transaction_date
+
+                # Calculate totals based on transaction type
+                if transaction.transaction_type == "debit":
+                    total_debits += transaction.amount
+                elif transaction.transaction_type == "credit":
+                    total_credits += transaction.amount
+
+            # Validate that total debits equal total credits
+            if total_debits != total_credits:
+                messages.error(
+                    request,
+                    "Total debits must equal total credits.",
+                    extra_tags="bg-danger",
+                )
+                return render(
+                    request,
+                    "finance/multi_journal_entry_add.html",
+                    {
+                        "formset": formset,
+                        "form_title": "Add New Transactions",
+                    },
+                )
+
+            # Save all transactions
+            for transaction in transactions:
+                transaction.save()
+
+            messages.success(
+                request, "Transactions posted successfully.", extra_tags="bg-success"
+            )
+            return redirect("finance:multi_journal")
+    else:
+        formset = TransactionFormSet(
+            queryset=Transaction.objects.none()
+        )  # Start with empty forms
+
+    context = {
+        "formset": formset,
+        "form_title": "Add New Transactions",
+    }
+
+    return render(request, "finance/multi_journal_entry_add.html", context)
 
 
 # =================================== ledger_report ist view ===================================
@@ -209,61 +298,6 @@ def get_financial_year_dates():
 
 @login_required
 @admin_or_manager_required
-# def ledger_report_view(request):
-#     selected_account_id = request.GET.get("account_id")  # Get selected account ID
-#     ledger_data = []
-#     accounts = ChartOfAccounts.objects.all()  # Fetch all accounts for the dropdown
-#     total_debits = 0
-#     total_credits = 0
-
-#     # Get the start and end dates for the current financial year
-#     financial_year_start, financial_year_end = get_financial_year_dates()
-
-#     # Use query parameters or default to the financial year range
-#     start_date = request.GET.get("start_date") or financial_year_start
-#     end_date = request.GET.get("end_date") or financial_year_end
-
-#     selected_account = None
-
-#     if selected_account_id:
-#         selected_account = get_object_or_404(ChartOfAccounts, id=selected_account_id)
-
-#         ledger_data = Transaction.objects.filter(
-#             account=selected_account, transaction_date__range=[start_date, end_date]
-#         ).order_by("transaction_date")
-
-#         running_balance = 0
-#         for transaction in ledger_data:
-#             if transaction.transaction_type == "debit":
-#                 transaction.debit = transaction.amount
-#                 transaction.credit = 0
-#                 total_debits += transaction.amount
-#             elif transaction.transaction_type == "credit":
-#                 transaction.debit = 0
-#                 transaction.credit = transaction.amount
-#                 total_credits += transaction.amount
-#             else:
-#                 transaction.debit = 0
-#                 transaction.credit = 0
-
-#             running_balance += transaction.debit - transaction.credit
-#             transaction.running_balance = running_balance
-
-
-#     return render(
-#         request,
-#         "finance/ledger_report.html",
-#         {
-#             "ledger_data": ledger_data,
-#             "accounts": accounts,
-#             "selected_account": selected_account,
-#             "selected_account_id": selected_account_id,
-#             "start_date": start_date,
-#             "end_date": end_date,
-#             "total_debits": total_debits,
-#             "total_credits": total_credits,
-#         },
-#     )
 def ledger_report_view(request):
     selected_account_id = request.GET.get("account_id")  # Get selected account ID
     ledger_data = []

@@ -1,96 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi Journal Entry</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .table th,
-        .table td {
-            vertical-align: middle;
-            /* Align content vertically */
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container mt-5">
-        <h2 class="mb-4">Multi Journal Entry</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ formset.management_form }}
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Account</th>
-                            <th>Offset A/C</th>
-                            <th>Amount</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for form in formset %}
-                        <tr>
-                            <td>{{ form.account }}</td>
-                            <td>{{ form.offset_account }}</td>
-                            <td>{{ form.amount }}</td>
-                            <td>{{ form.transaction_type }}</td>
-                            <td>{{ form.transaction_date }}</td>
-                            <td>{{ form.description }}</td>
-                            <td>
-                                <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="removeRow(this)">Remove</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center">No transactions available.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Save Transactions</button>
-                <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
-            </div>
-        </form>
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+            <a href="{% url 'dashboard' %}">
+                <button type="button" class="btn btn-info font-weight-bold">
+                    <i class="mdi mdi-arrow-left-bold mr-2"></i>
+                    Go back
+                </button>
+            </a>
+        </div>
     </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3>{{ form_title|upper }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ formset.management_form }}
+                        <!-- Management form for formsets -->
 
-    <script>
-        function removeRow(button) {
-            const row = button.closest('tr');
-            row.remove();
+                        <!-- Add a single field for transaction date -->
+                        <div class="form-group">
+                            <label for="transaction_date">Transaction Date</label>
+                            <input type="date" name="transaction_date" id="transaction_date" class="form-control"
+                                required>
+                        </div>
+
+                        <!-- Formset container for multiple transactions -->
+                        <div id="formset-container">
+                            {% for form in formset %}
+                            <div class="form-group">
+                                {{ form|crispy }}
+                                <button type="button" class="btn btn-danger remove-form"
+                                    onclick="removeForm(this)">Remove</button>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            <button type="button" class="btn btn-success" onclick="addForm()">Add More</button>
+                        </div>
+
+                        <div class="form-group mt-4 mb-0">
+                            <button type="submit" class="btn btn-dark btn-block"
+                                onclick="return confirm('Are you sure you want to proceed?')">
+                                Post Transactions
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addForm() {
+        const formsetContainer = document.getElementById('formset-container');
+        const formset = document.querySelectorAll('.form-group');
+
+        // Clone the last form in the formset
+        const lastForm = formset[formset.length - 1];
+        const newForm = lastForm.cloneNode(true);
+
+        // Reset values in the new form
+        const inputs = newForm.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.value = '';
+            // Update the name and id attributes to maintain the formset structure
+            const name = input.name.replace(/-\d+-/, `-${formset.length}-`);
+            const id = input.id.replace(/-\d+-/, `-${formset.length}-`);
+            input.name = name;
+            input.id = id;
+        });
+
+        // Append the new form to the container
+        formsetContainer.appendChild(newForm);
+
+        // Update management form count
+        document.querySelector('input[name="form-COUNT"]').value = formset.length + 1;
+    }
+
+    function removeForm(button) {
+        const formGroup = button.parentElement;
+        const formset = document.querySelectorAll('.form-group');
+
+        // Ensure there's more than one form before removing
+        if (formset.length > 1) {
+            formGroup.remove();
+            // Update management form count
+            document.querySelector('input[name="form-COUNT"]').value = formset.length - 1;
+        } else {
+            alert("You must have at least one form.");
         }
-
-        function addRow() {
-            const tableBody = document.querySelector('tbody');
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td><input type="text" class="form-control" name="account" required></td>
-                <td><input type="text" class="form-control" name="offset_account" required></td>
-                <td><input type="number" class="form-control" name="amount" step="0.01" required></td>
-                <td>
-                    <select name="transaction_type" class="form-control" required>
-                        <option value="debit">Debit</option>
-                        <option value="credit">Credit</option>
-                    </select>
-                </td>
-                <td><input type="date" class="form-control" name="transaction_date" required></td>
-                <td><textarea name="description" class="form-control" rows="1"></textarea></td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button>
-                </td>
-            `;
-            tableBody.appendChild(newRow);
-        }
-    </script>
-</body>
-
-</html>
+    }
+</script>
+{% endblock content %}
