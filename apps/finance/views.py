@@ -209,6 +209,61 @@ def get_financial_year_dates():
 
 @login_required
 @admin_or_manager_required
+# def ledger_report_view(request):
+#     selected_account_id = request.GET.get("account_id")  # Get selected account ID
+#     ledger_data = []
+#     accounts = ChartOfAccounts.objects.all()  # Fetch all accounts for the dropdown
+#     total_debits = 0
+#     total_credits = 0
+
+#     # Get the start and end dates for the current financial year
+#     financial_year_start, financial_year_end = get_financial_year_dates()
+
+#     # Use query parameters or default to the financial year range
+#     start_date = request.GET.get("start_date") or financial_year_start
+#     end_date = request.GET.get("end_date") or financial_year_end
+
+#     selected_account = None
+
+#     if selected_account_id:
+#         selected_account = get_object_or_404(ChartOfAccounts, id=selected_account_id)
+
+#         ledger_data = Transaction.objects.filter(
+#             account=selected_account, transaction_date__range=[start_date, end_date]
+#         ).order_by("transaction_date")
+
+#         running_balance = 0
+#         for transaction in ledger_data:
+#             if transaction.transaction_type == "debit":
+#                 transaction.debit = transaction.amount
+#                 transaction.credit = 0
+#                 total_debits += transaction.amount
+#             elif transaction.transaction_type == "credit":
+#                 transaction.debit = 0
+#                 transaction.credit = transaction.amount
+#                 total_credits += transaction.amount
+#             else:
+#                 transaction.debit = 0
+#                 transaction.credit = 0
+
+#             running_balance += transaction.debit - transaction.credit
+#             transaction.running_balance = running_balance
+
+
+#     return render(
+#         request,
+#         "finance/ledger_report.html",
+#         {
+#             "ledger_data": ledger_data,
+#             "accounts": accounts,
+#             "selected_account": selected_account,
+#             "selected_account_id": selected_account_id,
+#             "start_date": start_date,
+#             "end_date": end_date,
+#             "total_debits": total_debits,
+#             "total_credits": total_credits,
+#         },
+#     )
 def ledger_report_view(request):
     selected_account_id = request.GET.get("account_id")  # Get selected account ID
     ledger_data = []
@@ -224,15 +279,30 @@ def ledger_report_view(request):
     end_date = request.GET.get("end_date") or financial_year_end
 
     selected_account = None
+    opening_balance = 0
 
     if selected_account_id:
         selected_account = get_object_or_404(ChartOfAccounts, id=selected_account_id)
 
+        # Get transactions within the selected date range
         ledger_data = Transaction.objects.filter(
             account=selected_account, transaction_date__range=[start_date, end_date]
         ).order_by("transaction_date")
 
-        running_balance = 0
+        # Get opening balance by calculating the balance before the start_date
+        opening_balance_queryset = Transaction.objects.filter(
+            account=selected_account, transaction_date__lt=start_date
+        )
+
+        # Calculate the opening balance as the sum of all prior debits and credits
+        for transaction in opening_balance_queryset:
+            if transaction.transaction_type == "debit":
+                opening_balance += transaction.amount
+            elif transaction.transaction_type == "credit":
+                opening_balance -= transaction.amount
+
+        # Calculate debits, credits, and running balance
+        running_balance = opening_balance
         for transaction in ledger_data:
             if transaction.transaction_type == "debit":
                 transaction.debit = transaction.amount
@@ -246,6 +316,7 @@ def ledger_report_view(request):
                 transaction.debit = 0
                 transaction.credit = 0
 
+            # Update running balance
             running_balance += transaction.debit - transaction.credit
             transaction.running_balance = running_balance
 
@@ -261,5 +332,6 @@ def ledger_report_view(request):
             "end_date": end_date,
             "total_debits": total_debits,
             "total_credits": total_credits,
+            "opening_balance": opening_balance,  # Pass opening balance to template
         },
     )

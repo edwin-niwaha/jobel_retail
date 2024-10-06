@@ -72,9 +72,20 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Opening balance row -->
+                        <tr>
+                            <td></td> <!-- Empty cell for date -->
+                            <td><strong>Opening Balance</strong></td>
+                            <td class="text-right"></td> <!-- Empty cell for debits -->
+                            <td class="text-right"></td> <!-- Empty cell for credits -->
+                            <td class="text-right"><strong>{{ opening_balance|floatformat:"2"|intcomma }}</strong></td>
+                            <!-- Opening balance -->
+                        </tr>
+
+                        <!-- Transaction rows -->
                         {% for item in ledger_data %}
                         <tr>
-                            <td>{{ item.transaction_date }}</td>
+                            <td>{{ item.transaction_date|date:"d/m/Y" }}</td>
                             <td>{{ item.description }}</td>
                             <td class="text-right">{{ item.debit|floatformat:"2"|intcomma }}</td>
                             <td class="text-right">{{ item.credit|floatformat:"2"|intcomma }}</td>
@@ -90,9 +101,7 @@
                         <tr>
                             <td colspan="2"><strong>Total</strong></td>
                             <td class="text-right"><strong>{{ total_debits|floatformat:"2"|intcomma }}</strong></td>
-                            <!-- Display total debits -->
                             <td class="text-right"><strong>{{ total_credits|floatformat:"2"|intcomma }}</strong></td>
-                            <!-- Display total credits -->
                             <td></td> <!-- Leave empty for running balance -->
                         </tr>
                     </tfoot>
