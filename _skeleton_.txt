@@ -1,0 +1,65 @@
+Full Stack Project Structure
+
+/project-root/                        # Root directory of the project
+├── /backend/                         # Django backend (REST API)
+│   ├── /apps/                        # Django apps containing distinct functionality
+│   │   ├── /main/                    # Core app (dashboard, global settings)
+│   │   ├── /customers/               # Customer management (models, views, API logic)
+│   │   ├── /authentication/          # Authentication (JWT, permissions, user management)
+│   │   ├── /inventory/               # Inventory app (stock management, inventory tracking)
+│   │   ├── /orders/                  # Order processing
+│   │   ├── /sales/                   # Sales and transactions processing
+│   │   ├── /products/                # Product catalog, pricing, and management
+│   │   ├── /supplier/                # Supplier and vendor management
+│   │   ├── /finance/                 # Financial reports and payments
+│   │   └── /common/                  # Shared utilities, middleware, base models, etc.
+│   ├── /config/                      # Django project configuration
+│   │   ├── settings.py               # Main settings file (DB config, installed apps, etc.)
+│   │   ├── urls.py                   # Project-level URL routing, includes app URLs
+│   │   ├── wsgi.py                   # WSGI configuration for deployment
+│   │   ├── asgi.py                   # ASGI configuration (optional, for WebSockets)
+│   │   └── __init__.py               # Marks config as a package
+│   ├── /api/                         # Central API layer for managing API routes (optional)
+│   │   ├── urls.py                   # API-specific URL routing
+│   │   ├── views.py                  # Centralized API views (optional)
+│   │   └── serializers.py            # Shared serializers for API responses
+│   ├── manage.py                     # Django management script
+│   ├── requirements.txt              # Backend dependencies (Django, DRF, etc.)
+│   ├── .env                          # Environment variables (DB, API keys, etc.)
+│   ├── .gitignore                    # Gitignore for backend (e.g., .env, __pycache__)
+│   └── README.md                     # Backend documentation
+
+├── /frontend/                        # Next.js frontend (React-based)
+│   ├── /components/                  # Reusable React components (UI elements, forms, etc.)
+│   │   ├── /Header.js                # Header component
+│   │   ├── /Footer.js                # Footer component
+│   │   └── /ProductCard.js           # Component for displaying product information
+│   ├── /pages/                       # Next.js pages (auto-routes)
+│   │   ├── /dashboard/               # Dashboard page for overview
+│   │   ├── /products/                # Products listing and details page
+│   │   ├── /customers/               # Customer management pages
+│   │   ├── /orders/                  # Order management pages
+│   │   ├── /sales/                   # Sales reporting pages
+│   │   ├── /auth/                    # Authentication pages (login, registration)
+│   │   ├── /api/                     # API route handling (Next.js API routes if needed)
+│   │   └── _app.js                   # Root component (global styles, layout)
+│   ├── /styles/                      # CSS or SCSS files for global and component-level styles
+│   │   ├── global.css                # Global CSS file
+│   │   └── dashboard.css             # Dashboard-specific styles
+│   ├── /public/                      # Public assets (images, icons, fonts, etc.)
+│   ├── /hooks/                       # Custom React hooks (e.g., useAuth, useProducts)
+│   ├── /utils/                       # Utility functions (API calls, data formatting)
+│   ├── next.config.js                # Next.js configuration (custom build settings)
+│   ├── package.json                  # Frontend dependencies (React, Next.js, Axios, etc.)
+│   ├── .env                          # Frontend environment variables (API URLs)
+│   ├── .gitignore                    # Gitignore for frontend (e.g., .next, node_modules)
+│   └── README.md                     # Frontend documentation
+
+├── /docker/                          # Docker-related files (optional, if Dockerized)
+│   ├── Dockerfile.backend            # Dockerfile for Django backend
+│   ├── Dockerfile.frontend           # Dockerfile for Next.js frontend
+│   └── docker-compose.yml            # Docker Compose configuration (services, networks)
+
+├── .gitignore                        # Global gitignore file for the entire project
+├── docker-compose.yml                # Docker Compose for running both backend and frontend
+└── README.md                         # Project-level documentation (setup instructions, etc.)

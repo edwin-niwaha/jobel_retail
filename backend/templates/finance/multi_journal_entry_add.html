@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+            <a href="{% url 'dashboard' %}">
+                <button type="button" class="btn btn-info font-weight-bold">
+                    <i class="mdi mdi-arrow-left-bold mr-2"></i>
+                    Go back
+                </button>
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3>{{ form_title|upper }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ formset.management_form }}
+
+                        <!-- Single field for transaction date -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="transaction_date">Transaction Date</label>
+                                    <input type="date" name="transaction_date" id="transaction_date"
+                                        class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form header with labels (displayed only once) -->
+                        <div class="form-row font-weight-bold mb-2">
+                            {% for field in formset.forms.0 %}
+                            {% if field.name != "id" %}
+                            <!-- Skip the id field in the header -->
+                            <div class="col-md">{{ field.label }}</div>
+                            {% endif %}
+                            {% endfor %}
+                            <div class="col-md-1"></div> <!-- Empty column for the "Remove" button -->
+                        </div>
+
+                        <!-- Grid layout for formset fields -->
+                        <div id="formset-container">
+                            {% for form in formset %}
+                            <div class="form-row align-items-center mb-3">
+                                {% for field in form %}
+                                {% if field.name == "id" %}
+                                {{ field.as_hidden }}
+                                <!-- Render the id field as hidden -->
+                                {% else %}
+                                <div class="col-md">
+                                    <div class="form-group mb-0">
+                                        {{ field.as_widget }}
+                                        <!-- Render the visible form fields -->
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                                <div class="col-md-1 d-flex align-items-center">
+                                    <button type="button" class="btn btn-danger" onclick="removeForm(this)"><i
+                                            class="mdi mdi-close-circle-outline"></i></button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-success" onclick="addForm()">Add Transaction</button>
+                        </div>
+                        <!-- Submit button -->
+                        <div class="form-row mt-4 mb-0">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-dark btn-block"
+                                    onclick="return confirm('Are you sure you want to proceed?')">
+                                    Post Transactions
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function removeForm(button) {
+        const formRow = button.closest('.form-row');
+        const formset = document.querySelectorAll('.form-row');
+
+        if (formset.length > 1) {
+            formRow.remove();
+            document.querySelector('input[name="form-COUNT"]').value = formset.length - 1;
+        } else {
+            alert("You must have at least one form.");
+        }
+    }
+
+    // Clone and add new formset
+    function addForm() {
+        const formsetContainer = document.getElementById('formset-container');
+        const totalForms = document.querySelector('input[name="form-COUNT"]');
+        const currentFormCount = parseInt(totalForms.value);
+
+        // Clone the first form (you can adjust which form to clone if necessary)
+        const newForm = formsetContainer.children[0].cloneNode(true);
+
+        // Clear input values
+        const inputs = newForm.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.value = ''; // Clear the value
+        });
+
+        // Update names of the new form inputs
+        inputs.forEach(input => {
+            input.name = input.name.replace(/-\d+-/, `-${currentFormCount}-`);
+            // Update id for better accessibility
+            input.id = input.id.replace(/-\d+-/, `-${currentFormCount}-`);
+        });
+
+        // Update labels to match the new id
+        const labels = newForm.querySelectorAll('label');
+        labels.forEach(label => {
+            label.htmlFor = label.htmlFor.replace(/-\d+-/, `-${currentFormCount}-`);
+        });
+
+        // Append the new form to the container
+        formsetContainer.appendChild(newForm);
+
+        // Increment the total forms count
+        totalForms.value = currentFormCount + 1;
+    }
+</script>
+{% endblock content %}

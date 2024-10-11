@@ -171,51 +171,6 @@ def expense_transaction_create_view(request):
 
 
 # =================================== multi-journal entry view ===================================
-# @login_required
-# @admin_or_manager_required  # Assuming this decorator is defined somewhere
-# @transaction.atomic
-# def multi_journal_view(request):
-#     if request.method == "POST":
-#         formset = TransactionFormSet(request.POST)
-
-#         # Check if the formset is valid
-#         if formset.is_valid():
-#             transactions = formset.save(commit=False)
-#             saved_count = 0  # Count of saved transactions
-
-#             for transaction in transactions:
-#                 transaction.save()  # Save each transaction
-#                 saved_count += 1  # Increment the count for each saved transaction
-
-#             # Only display success message if at least one transaction is saved
-#             if saved_count > 0:
-#                 messages.success(
-#                     request, "Transactions saved successfully.", extra_tags="bg-success"
-#                 )
-#                 return redirect(
-#                     "finance:multi_journal"
-#                 )  # Change 'success_url' to your desired redirect
-#             else:
-#                 messages.warning(
-#                     request,
-#                     "Please fill in the required fields.",
-#                     extra_tags="bg-danger",
-#                 )
-
-#         else:
-#             # Display a message if the formset is invalid
-#             messages.error(
-#                 request,
-#                 "There was an error with your submission. Please correct the errors below.",
-#                 extra_tags="bg-danger",
-#             )
-
-#     else:
-#         formset = TransactionFormSet(queryset=Transaction.objects.none())
-
-#     return render(request, "finance/multi_journal_entry_add.html", {"formset": formset})
-
-
 @login_required
 @admin_or_manager_required  # Assuming this decorator is defined somewhere
 @transaction.atomic

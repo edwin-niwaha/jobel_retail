@@ -28,12 +28,14 @@ Ensure you have the following installed on your system:
 ```bash
 git clone https://github.com/edwin-niwaha/perpetual_retail
 cd perpetual_retail
+cd backend
 ```
 
 ### 2. Set Up Python Environment
 Create a virtual environment:
 ```bash
-python -m venv venv
+python -m venv .venv
+
 ```
 ### Activate the virtual environment:
 

@@ -233,15 +233,10 @@ class TransactionForm(forms.ModelForm):
             "transaction_type": forms.Select(
                 attrs={"class": "form-control"}
             ),  # Ensure this field is included
-            # "transaction_date": forms.DateInput(
-            #     attrs={"class": "form-control", "type": "date"}
-            # ),
             "description": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Narrations"}
             ),
         }
 
 
-TransactionFormSet = modelformset_factory(
-    Transaction, form=TransactionForm, extra=2  # Allow deleting forms
-)
+TransactionFormSet = modelformset_factory(Transaction, form=TransactionForm, extra=2)
