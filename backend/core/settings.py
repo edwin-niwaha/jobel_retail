@@ -5,30 +5,35 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Base directory setup
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
-
 DEBUG = os.environ.get("DEBUG", False)
-
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
 INSTALLED_APPS = [
+    # Django core apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third-party apps
+    "djoser",
+    "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
     "social_django",
     "bootstrap5",
     "formtools",
     "crispy_forms",
     "crispy_bootstrap5",
     "django.contrib.humanize",
+    # Custom apps
     "apps.main",
     "apps.authentication",
     "apps.supplier",
@@ -40,33 +45,46 @@ INSTALLED_APPS = [
     "apps.finance",
 ]
 
+# Middleware configuration
 MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # For handling CORS
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "social_django.middleware.SocialAuthExceptionMiddleware",
+    "social_django.middleware.SocialAuthExceptionMiddleware",  # Handles social auth exceptions
 ]
 
+# CORS allowed origins
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# URL routing
 ROOT_URLCONF = "core.urls"
 
+# Template configuration
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / "templates"],  # Add custom template directory
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                # Default context processors
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Social authentication context processors
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
+                # Custom context processors
                 "apps.authentication.context_processors.guest_profiles_context",
                 "apps.authentication.context_processors.guest_user_feedback_context",
                 "apps.authentication.context_processors.low_stock_alerts_context",
@@ -76,9 +94,10 @@ TEMPLATES = [
     },
 ]
 
+# WSGI configuration
 WSGI_APPLICATION = "core.wsgi.application"
 
-# Database configuration
+# Database configuration (PostgreSQL)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -90,72 +109,95 @@ DATABASES = {
     }
 }
 
+# Django REST framework configuration
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        # Uncomment for JWT support:
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+# Simple JWT configuration
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+# Email backend (console for development)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Djoser configuration
+DJOSER = {
+    "PASSWORD_RESET_CONFIRM_URL": "auth/password/reset-password-confirmation/?uid={uid}&token={token}",
+    "ACTIVATION_URL": "#/activate/{uid}/{token}",
+    "SEND_ACTIVATION_EMAIL": False,
+    "SERIALIZERS": {},
+}
+
+# General site settings
+SITE_NAME = "Test Django Next.js"
+DOMAIN = "localhost:3000"
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Authentication backends
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.github.GithubOAuth2",
     "social_core.backends.google.GoogleOAuth2",
-    "django.contrib.auth.backends.ModelBackend",
+    "django.contrib.auth.backends.ModelBackend",  # Default backend
 )
 
-# Internationalization
+# Localization and time zone settings
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static and media files
+# Static and media files configuration
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static"]  # Additional static files directory
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
-# Login settings
+# Login and session settings
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "login"
 
-# Social authentication settings
+SESSION_COOKIE_AGE = 3600  # 60 * 60 seconds = 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Close session when browser closes
+
+# Social authentication keys (from environment variables)
 SOCIAL_AUTH_GITHUB_KEY = os.getenv("GITHUB_KEY")
 SOCIAL_AUTH_GITHUB_SECRET = os.getenv("GITHUB_SECRET")
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_SECRET")
 
-# Email settings
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.getenv("EMAIL_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
-
-# Session settings
-SESSION_COOKIE_AGE = 3600  # 60 * 60 Session duration in seconds
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expire session when browser closes
+# Email configuration (for production)
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Django Crispy Forms settings
+# Django Crispy Forms configuration
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# Logging settings
+# Logging configuration
 LOGS_DIR = BASE_DIR / "logs"
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -20,6 +20,8 @@ urlpatterns = [
     path("api/finance/", include("apps.finance.urls")),
     # Social Authentication
     re_path(r"^oauth/", include("social_django.urls", namespace="social")),
+    # Djoser authentication routes
+    path("api/auth/", include("apis.auth.urls")),
 ]
 
 # Additional URL patterns for debugging and media files in development mode
