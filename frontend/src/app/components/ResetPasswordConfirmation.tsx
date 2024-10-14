@@ -1,7 +1,7 @@
 // pages/reset-password-confirmation.js
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { AuthActions } from "@/app/auth/utils";
+import { AuthActions } from "@/app/utils/auth";
 import { useSearchParams, useRouter } from "next/navigation";
 type FormData = {
   password: string;

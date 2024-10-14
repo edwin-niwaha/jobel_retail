@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from apps.authentication.forms import LoginForm
 from . import views
@@ -8,6 +8,7 @@ from .views import (
     CustomLoginView,
     ResetPasswordView,
 )
+from .viewset import LogoutView
 
 # Define URL patterns for the application
 urlpatterns = [
@@ -58,4 +59,7 @@ urlpatterns = [
         views.validate_user_feedback,
         name="validate_user_feedback",
     ),
+    path("", include("djoser.urls")),  # Djoser default URLs
+    path("", include("djoser.urls.jwt")),  # Djoser JWT URLs
+    path("logout/", LogoutView.as_view()),  # Custom logout URL
 ]
