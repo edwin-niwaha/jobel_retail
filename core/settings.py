@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables from .env file
 load_dotenv()
@@ -97,17 +98,20 @@ TEMPLATES = [
 # WSGI configuration
 WSGI_APPLICATION = "core.wsgi.application"
 
-# Database configuration (PostgreSQL)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "default_db_name"),
-        "USER": os.environ.get("DB_USER", "default_user"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "default_password"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-    }
-}
+# Database configuration (PostgreSQL) Local host
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("DB_NAME", "default_db_name"),
+#         "USER": os.environ.get("DB_USER", "default_user"),
+#         "PASSWORD": os.environ.get("DB_PASSWORD", "default_password"),
+#         "HOST": os.environ.get("DB_HOST", "localhost"),
+#         "PORT": os.environ.get("DB_PORT", "5432"),
+#     }
+# }
+
+# Online database
+DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
 
 # Django REST framework configuration
 REST_FRAMEWORK = {
