@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # migrations is optional
-**/migrations
+# **/migrations
 
 # Development db
 db.sqlite3
