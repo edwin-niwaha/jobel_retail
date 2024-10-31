@@ -63,3 +63,8 @@ Full Stack Project Structure
 ├── .gitignore                        # Global gitignore file for the entire project
 ├── docker-compose.yml                # Docker Compose for running both backend and frontend
 └── README.md                         # Project-level documentation (setup instructions, etc.)
+
+# Change project name local / upstream
+git remote set-url origin https://github.com/edwin-niwaha/jobel_retail.git
+# Verify the Changes
+git remote -v

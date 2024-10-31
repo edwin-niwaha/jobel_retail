@@ -7,8 +7,8 @@ C:\inetpub\wwwroot\sponsorship_mis\venv\Lib\site-packages\wfastcgi.py
 
 
 #####################################################################
-C:\inetpub\wwwroot\perpetual_retail\.venv\Scripts\python.exe
-C:\inetpub\wwwroot\perpetual_retail\.venv\Lib\site-packages\wfastcgi.py
+C:\inetpub\wwwroot\jobel_retail\.venv\Scripts\python.exe
+C:\inetpub\wwwroot\jobel_retail\.venv\Lib\site-packages\wfastcgi.py
 
 
 // ENVIRONMENT VARIABLES
@@ -17,7 +17,7 @@ DJANGO_SETTINGS_MODULE : core.settings
 
 PYTHON_PATH : C:\inetpub\wwwroot\sponsorship_mis
 #####################################################################
-PYTHON_PATH : C:\inetpub\wwwroot\perpetual_retail
+PYTHON_PATH : C:\inetpub\wwwroot\jobel_retail
  
 WSGI_HANDLER : django.core.wsgi.get_wsgi_application()
 
@@ -34,7 +34,7 @@ For example, my value uses the virtualenv paths:
 C:\inetpub\wwwroot\sponsorship_mis\venv\Scripts\python.exe|C:\inetpub\wwwroot\sponsorship_mis\venv\Lib\site-packages\wfastcgi.py]
 #####################################################################
 
-C:\inetpub\wwwroot\sponsorship_mis\.venv\Scripts\python.exe|C:\inetpub\wwwroot\perpetual_retail\.venv\Lib\site-packages\wfastcgi.py]
+C:\inetpub\wwwroot\sponsorship_mis\.venv\Scripts\python.exe|C:\inetpub\wwwroot\jobel_retail\.venv\Lib\site-packages\wfastcgi.py]
 
 
 // Serving Static Files

@@ -1,6 +1,6 @@
-# Perpetual Retail Manager
+# Jobel Retail
 
-**Perpetual Retail Manager** is a comprehensive retail management system designed to streamline business operations, enhance inventory tracking, monitor sales, and strengthen customer relationships. With real-time data updates and an intuitive interface, it is ideal for managing retail stores of any size.
+**Jobel Retail** is a comprehensive retail management system designed to streamline business operations, enhance inventory tracking, monitor sales, and strengthen customer relationships. With real-time data updates and an intuitive interface, it is ideal for managing retail stores of any size.
 
 ## Features
 
@@ -26,8 +26,8 @@ Ensure you have the following installed on your system:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/edwin-niwaha/perpetual_retail
-cd perpetual_retail
+git clone https://github.com/edwin-niwaha/jobel_retail
+cd jobel_retail
 cd backend
 ```
 
