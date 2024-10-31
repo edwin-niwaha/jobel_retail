@@ -1,0 +1,61 @@
+{% extends "accounts/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3>{{ form_title|upper }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'orders:process_payment' order.id %}">
+                        {% csrf_token %}
+
+                        <!-- Choose Payment Method -->
+                        <div class="form-group">
+                            <label for="payment_method">Choose Payment Method:</label>
+                            <select name="payment_method" id="payment_method" class="form-control" required>
+                                <option value="">Select a method</option>
+                                {% for value, display in payment_method_choices %}
+                                <option value="{{ value }}">{{ display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <!-- Phone Number Input -->
+                        <div class="form-group">
+                            <label for="phone_number">Phone Number:</label>
+                            <input type="text" name="phone_number" id="phone_number" class="form-control" required>
+                        </div>
+
+                        <!-- Payment Button with Confirmation and Validation -->
+                        <div class="form-group mt-4 mb-0">
+                            <button type="submit" class="btn btn-dark btn-block"
+                                onclick="return confirm('Are you sure you want to proceed with the payment?') && validatePaymentForm()">
+                                Complete Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function validatePaymentForm() {
+        const phoneNumber = document.getElementById('phone_number').value;
+
+        // Add your phone number validation logic here
+        if (!phoneNumber.match(/^[0-9]{10}$/)) { // Example: Ensuring 10 digits
+            alert('Please enter a valid phone number.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+{% endblock content %}

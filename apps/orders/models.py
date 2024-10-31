@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
 from apps.products.models import Product, ProductVolume
 from apps.customers.models import Customer
 
@@ -58,9 +59,14 @@ ORDER_STATUS_CHOICES = [
     ("Returned", "Returned"),
 ]
 PAYMENT_METHOD_CHOICES = [
-    ("Cash", "Cash"),
-    ("Credit Card", "Credit Card"),
-    ("Bank Transfer", "Bank Transfer"),
+    ("MOBILE_MONEY", "Mobile Money"),
+    # ("BANK_TRANSFER", "Bank Transfer"),
+    # ("CREDIT_CARD", "Credit Card"),
+]
+PAYMENT_STATUS_CHOICES = [
+    ("pending", "Pending"),
+    ("completed", "Completed"),
+    ("failed", "Failed"),
 ]
 
 
@@ -76,6 +82,12 @@ class Order(models.Model):
     tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     amount_change = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending"
+    )
+    external_id = models.CharField(max_length=100, blank=True, null=True)
+    payer_phone_number = PhoneNumberField(null=True, blank=True)
 
     def __str__(self):
         # Use customer full name regardless of online or offline

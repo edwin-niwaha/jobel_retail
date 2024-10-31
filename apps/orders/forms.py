@@ -48,12 +48,9 @@ class CheckoutForm(forms.Form):
             attrs={
                 "class": "form-control",
                 "placeholder": "Address",
-                "rows": 3,  # Making it a multi-line input
+                "rows": 2,  # Making it a multi-line input
             }
         ),
-    )
-    payment_method = forms.ChoiceField(
-        choices=PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect
     )
 
 

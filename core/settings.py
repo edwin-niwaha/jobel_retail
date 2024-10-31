@@ -182,6 +182,10 @@ SOCIAL_AUTH_GITHUB_SECRET = os.getenv("GITHUB_SECRET")
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_SECRET")
 
+# Load your MTN credentials from the .env file
+MTN_CLIENT_ID = os.getenv("MTN_CLIENT_ID")
+MTN_CLIENT_SECRET = os.getenv("MTN_CLIENT_SECRET")
+
 # Email configuration (for production)
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_HOST = "smtp.gmail.com"

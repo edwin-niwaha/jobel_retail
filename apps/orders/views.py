@@ -1,12 +1,17 @@
 from django.contrib import messages
+import requests
+from django.http import JsonResponse
 import logging
-from django.utils import timezone
+from django.conf import settings
+import base64
+from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
 from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
-from .models import Order
+from .models import Order, PAYMENT_METHOD_CHOICES
 from .models import Cart, CartItem, Order, OrderDetail
 from apps.products.models import Product, ProductVolume
 from django.core.exceptions import MultipleObjectsReturned
@@ -128,7 +133,6 @@ def checkout_view(request):
     if request.method == "POST":
         form = CheckoutForm(request.POST)
         if form.is_valid():
-            payment_method = form.cleaned_data["payment_method"]
             total_amount = cart.get_total_price()
 
             # Update the customer's information from the form
@@ -145,7 +149,6 @@ def checkout_view(request):
                 created_at=timezone.now(),
                 total_amount=total_amount,
                 status="Pending",  # Or set a default status
-                payment_method=payment_method,
             )
 
             # Create OrderDetail entries for each item in the cart
@@ -181,6 +184,125 @@ def checkout_view(request):
         )
 
     return render(request, "orders/checkout.html", {"form": form, "cart": cart})
+
+
+# Process payment
+@login_required
+def process_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    form_title = "Payment Details"
+
+    # Payment method choices to be displayed in the form
+    payment_method_choices = PAYMENT_METHOD_CHOICES
+
+    if request.method == "POST":
+        payment_method = request.POST.get(
+            "payment_method"
+        )  # Capture the payment method
+        phone_number = request.POST.get("phone_number")  # Capture the phone number
+
+        # Log payment method for debugging
+        logger.debug(f"Payment Method: {payment_method}, Phone Number: {phone_number}")
+
+        # Prepare payment request data
+        payment_data = {
+            "amount": float(order.total_amount),
+            "currency": "USD",  # Change this to your currency if necessary
+            "externalId": str(order.id),  # Unique identifier for the transaction
+            "payer": {
+                "partyIdType": "MSISDN",
+                "partyId": phone_number,  # The phone number of the payer
+            },
+            "payerMessage": f"Payment for Order #{order.id}",
+            "payeeMessage": "Payment received",
+        }
+
+        # Prepare headers for API request
+        access_token = get_access_token(
+            settings.MTN_CLIENT_ID, settings.MTN_CLIENT_SECRET
+        )  # Function to get the token
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Request to MTN's API to initiate payment
+        request_to_pay_url = (
+            "https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay"
+        )
+        try:
+            response = requests.post(
+                request_to_pay_url, headers=headers, json=payment_data
+            )
+            response.raise_for_status()  # Raise an error for bad responses
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error occurred: {http_err}")
+            order.payment_status = "failed"
+            order.save()
+            return JsonResponse(
+                {"error": "Payment failed due to server error. Please try again."}
+            )
+        except Exception as err:
+            logger.error(f"An error occurred: {err}")
+            order.payment_status = "failed"
+            order.save()
+            return JsonResponse(
+                {"error": "An unexpected error occurred. Please try again."}
+            )
+
+        if response.status_code == 200:
+            transaction_info = response.json()
+            order.transaction_id = transaction_info.get("transactionId")
+            order.payment_status = "pending"  # Set status to pending
+            order.save()
+
+            # Optionally redirect or return a success response
+            return redirect("orders:customer_order_history")
+        else:
+            order.payment_status = "failed"
+            order.save()
+            return JsonResponse({"error": "Payment failed. Please try again."})
+
+    return render(
+        request,
+        "orders/payment.html",
+        {
+            "order": order,
+            "form_title": form_title,
+            "payment_method_choices": payment_method_choices,  # Pass payment methods to template
+        },
+    )
+
+
+def get_access_token(client_id, client_secret):
+    url = "https://sandbox.momodeveloper.mtn.com/collection/token/"
+    # Prepare Basic Authentication Header
+    credentials = f"{client_id}:{client_secret}"
+    encoded_credentials = base64.b64encode(credentials.encode("utf-8")).decode("utf-8")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Basic {encoded_credentials}",
+    }
+
+    try:
+        response = requests.post(url, headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"Failed to retrieve access token: {http_err}")
+        return None  # Handle this case as per your logic
+    except Exception as err:
+        logger.error(f"An error occurred while fetching the access token: {err}")
+        return None  # Handle this case as per your logic
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return response_data.get("access_token")
+    else:
+        logger.error(
+            f"Failed to retrieve access token: {response.status_code}, {response.text}"
+        )
+        return None  # Handle this case as per your logic
 
 
 @login_required
