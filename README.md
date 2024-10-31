@@ -41,7 +41,7 @@ python -m venv .venv
 
 - Windows:
 ```bash
-venv\Scripts\activates
+source .venv/Scripts/activate
 ```
 
 - macOS/Linux:
