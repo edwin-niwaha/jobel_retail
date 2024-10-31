@@ -59,6 +59,7 @@ urlpatterns = [
         views.validate_user_feedback,
         name="validate_user_feedback",
     ),
+    path("about/", views.about_us, name="about_us"),
     path("", include("djoser.urls")),  # Djoser default URLs
     path("", include("djoser.urls.jwt")),  # Djoser JWT URLs
     path("logout/", LogoutView.as_view()),  # Custom logout URL

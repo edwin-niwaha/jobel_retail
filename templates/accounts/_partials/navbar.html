@@ -40,7 +40,7 @@
         <ul class="mb-2 navbar-nav me-auto mb-lg-0" style="font-family: 'Times New Roman', Times, serif">
           <li class="nav-item">
             <a class="nav-link" href="/">HOME</a></li>
-          <a class="nav-link" href="#">ABOUT US</a></li>
+          <a class="nav-link" href="{% url 'about_us' %}">ABOUT US</a></li>
           {% if user.is_authenticated %}
           {% if user.profile.role == 'guest' %}
           <li class="nav-item">

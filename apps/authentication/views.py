@@ -304,3 +304,7 @@ def validate_user_feedback(request, contact_id):
             return HttpResponseRedirect(reverse("user_feedback"))
 
     return HttpResponseBadRequest("Invalid request")
+
+
+def about_us(request):
+    return render(request, "accounts/about_us.html")
