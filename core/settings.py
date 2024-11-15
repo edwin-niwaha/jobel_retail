@@ -99,19 +99,38 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # Database configuration (PostgreSQL) Local host
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "default_db_name"),
-        "USER": os.environ.get("DB_USER", "default_user"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "default_password"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("DB_NAME", "default_db_name"),
+#         "USER": os.environ.get("DB_USER", "default_user"),
+#         "PASSWORD": os.environ.get("DB_PASSWORD", "default_password"),
+#         "HOST": os.environ.get("DB_HOST", "localhost"),
+#         "PORT": os.environ.get("DB_PORT", "5432"),
+#     }
+# }
+
 
 # Online database
-# DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.getenv(
+            "DATABASE_URL",
+            None  # Use DATABASE_URL if provided
+        )
+    )
+}
+
+# Fallback to manual configuration if DATABASE_URL is not set
+if not DATABASES["default"]:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "default_db_name"),
+        "USER": os.getenv("DB_USER", "default_user"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "default_password"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    }
 
 # Django REST framework configuration
 REST_FRAMEWORK = {
