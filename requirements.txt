@@ -61,7 +61,6 @@ lxml==5.3.0
 MarkupPy==1.14
 mccabe==0.7.0
 mypy-extensions==1.0.0
-mysqlclient==2.2.4
 numpy==1.26.4
 oauthlib==3.2.2
 odfpy==1.4.1
