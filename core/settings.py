@@ -11,7 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
-DEBUG = os.environ.get("DEBUG", False)
+
+# DEBUG = os.environ.get("DEBUG", False)
+DEBUG = False
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'jobelstore.up.railway.app']
 
 CSRF_TRUSTED_ORIGINS = ['https://jobelstore.up.railway.app']
