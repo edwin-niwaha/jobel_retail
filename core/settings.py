@@ -12,7 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
 DEBUG = os.environ.get("DEBUG", False)
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'jobelstore.up.railway.app']
+
+CSRF_TRUSTED_ORIGINS = ['https://jobelstore.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -62,8 +64,8 @@ MIDDLEWARE = [
 
 # CORS allowed origins
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
 ]
 
 # URL routing
