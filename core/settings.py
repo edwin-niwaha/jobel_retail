@@ -53,8 +53,8 @@ INSTALLED_APPS = [
 
 # Middleware configuration
 MIDDLEWARE = [
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",  # For handling CORS
     "django.middleware.common.CommonMiddleware",
@@ -193,6 +193,9 @@ USE_TZ = True
 # Static and media files configuration
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]  # Additional static files directory
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
