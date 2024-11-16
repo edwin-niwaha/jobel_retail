@@ -116,7 +116,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 # }
 
 
-# Online database
+# Database configuration (PostgreSQL) Online
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv(
@@ -136,6 +136,7 @@ if not DATABASES["default"]:
         "HOST": os.getenv("DB_HOST", "localhost"),
         "PORT": os.getenv("DB_PORT", "5432"),
     }
+
 
 # Django REST framework configuration
 REST_FRAMEWORK = {
