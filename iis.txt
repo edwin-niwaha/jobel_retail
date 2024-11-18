@@ -46,3 +46,5 @@ C:\inetpub\wwwroot\jobel_retail\.venv\Scripts\python.exe|C:\inetpub\wwwroot\jobe
 
 https://www.theperfumeshop.com/
 
+Befor deploy
+python manage.py collectstatic

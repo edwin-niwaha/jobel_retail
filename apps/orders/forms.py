@@ -1,5 +1,5 @@
 from django import forms
-from .models import PAYMENT_METHOD_CHOICES, ORDER_STATUS_CHOICES, Order
+from .models import Order
 
 
 class CheckoutForm(forms.Form):

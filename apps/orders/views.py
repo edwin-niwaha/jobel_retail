@@ -1,5 +1,6 @@
 from django.contrib import messages
 import requests
+import uuid
 from django.http import JsonResponse
 import logging
 from django.conf import settings
@@ -11,7 +12,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
-from .models import Order, PAYMENT_METHOD_CHOICES
 from .models import Cart, CartItem, Order, OrderDetail
 from apps.products.models import Product, ProductVolume
 from django.core.exceptions import MultipleObjectsReturned
@@ -23,6 +23,7 @@ from apps.authentication.decorators import (
     admin_required,
     admin_or_manager_or_staff_required,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def product_detail(request, id):
 
     return render(request, "orders/product_detail.html", context)
 
-
+# =================================== add_to_cart ===================================
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -102,7 +103,7 @@ def add_to_cart(request, product_id):
 
     return redirect("orders:product_detail", id=product_id)
 
-
+# =================================== cart_view ===================================
 @login_required
 def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -116,7 +117,7 @@ def cart_view(request):
 
     return render(request, "orders/cart.html", context)
 
-
+# =================================== checkout_view ===================================
 @login_required
 def checkout_view(request):
     try:
@@ -186,131 +187,154 @@ def checkout_view(request):
     return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
 
-# Process payment
+# =================================== process_payment ===================================
 @login_required
 def process_payment(request, order_id):
+    """
+    Handles the payment processing for a given order.
+    """
     order = get_object_or_404(Order, id=order_id)
     form_title = "Payment Details"
 
-    # Payment method choices to be displayed in the form
-    payment_method_choices = PAYMENT_METHOD_CHOICES
+    # Retrieve the customer's phone number
+    phone_number = order.customer.phone
+    if not phone_number:
+        return JsonResponse({"error": "The customer does not have a valid phone number."}, status=400)
 
     if request.method == "POST":
-        payment_method = request.POST.get(
-            "payment_method"
-        )  # Capture the payment method
-        phone_number = request.POST.get("phone_number")  # Capture the phone number
-
-        # Log payment method for debugging
+        payment_method = request.POST.get("payment_method")
         logger.debug(f"Payment Method: {payment_method}, Phone Number: {phone_number}")
 
-        # Prepare payment request data
+        # Prepare payment data
         payment_data = {
             "amount": float(order.total_amount),
-            "currency": "USD",  # Change this to your currency if necessary
-            "externalId": str(order.id),  # Unique identifier for the transaction
+            "currency": "EUR",
+            "externalId": str(order.id),
             "payer": {
                 "partyIdType": "MSISDN",
-                "partyId": phone_number,  # The phone number of the payer
+                "partyId": phone_number,
             },
             "payerMessage": f"Payment for Order #{order.id}",
             "payeeMessage": "Payment received",
         }
 
-        # Prepare headers for API request
-        access_token = get_access_token(
-            settings.MTN_CLIENT_ID, settings.MTN_CLIENT_SECRET
-        )  # Function to get the token
+        # Fetch access token
+        access_token = get_access_token()
+        if not access_token:
+            return JsonResponse({"error": "Failed to authenticate with the payment service."}, status=500)
+
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
+            "Ocp-Apim-Subscription-Key": settings.MTN_SUBSCRIPTION_KEY,
         }
 
-        # Request to MTN's API to initiate payment
-        request_to_pay_url = (
-            "https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay"
-        )
         try:
+            # Make the payment request
             response = requests.post(
-                request_to_pay_url, headers=headers, json=payment_data
+                "https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay",
+                headers=headers,
+                json=payment_data,
             )
-            response.raise_for_status()  # Raise an error for bad responses
-        except requests.exceptions.HTTPError as http_err:
-            logger.error(f"HTTP error occurred: {http_err}")
+            response.raise_for_status()
+
+            if response.status_code == 202:  # MoMo typically returns 202 for accepted requests
+                transaction_info = response.json()
+                order.transaction_id = transaction_info.get("transactionId")
+                order.payment_status = "pending"
+                order.save()
+                return redirect("orders:customer_order_history")
+            else:
+                logger.error(f"Payment failed: {response.text}")
+                order.payment_status = "failed"
+                order.save()
+                return JsonResponse({"error": "Payment failed. Please try again."}, status=400)
+
+        except requests.exceptions.RequestException as req_err:
+            logger.error(f"Request error occurred: {req_err}")
             order.payment_status = "failed"
             order.save()
-            return JsonResponse(
-                {"error": "Payment failed due to server error. Please try again."}
-            )
-        except Exception as err:
-            logger.error(f"An error occurred: {err}")
-            order.payment_status = "failed"
-            order.save()
-            return JsonResponse(
-                {"error": "An unexpected error occurred. Please try again."}
-            )
+            return JsonResponse({"error": "Payment failed due to server error. Please try again."}, status=500)
 
-        if response.status_code == 200:
-            transaction_info = response.json()
-            order.transaction_id = transaction_info.get("transactionId")
-            order.payment_status = "pending"  # Set status to pending
-            order.save()
-
-            # Optionally redirect or return a success response
-            return redirect("orders:customer_order_history")
-        else:
-            order.payment_status = "failed"
-            order.save()
-            return JsonResponse({"error": "Payment failed. Please try again."})
-
+    # Render the payment form
     return render(
         request,
         "orders/payment.html",
         {
             "order": order,
             "form_title": form_title,
-            "payment_method_choices": payment_method_choices,  # Pass payment methods to template
+            "payment_method_choices": Order.PAYMENT_METHOD_CHOICES,
         },
     )
 
+def get_access_token():
+    """
+    Fetches the access token for MTN API using Basic Authentication.
+    """
+    client_id = settings.MTN_CLIENT_ID
+    client_secret = settings.MTN_CLIENT_SECRET
+    subscription_key = settings.MTN_SUBSCRIPTION_KEY
 
-def get_access_token(client_id, client_secret):
+    if not client_id or not client_secret or not subscription_key:
+        logger.error("MTN API credentials are missing in settings.")
+        return None
+
     url = "https://sandbox.momodeveloper.mtn.com/collection/token/"
-    # Prepare Basic Authentication Header
     credentials = f"{client_id}:{client_secret}"
-    encoded_credentials = base64.b64encode(credentials.encode("utf-8")).decode("utf-8")
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Basic {encoded_credentials}",
+        "Ocp-Apim-Subscription-Key": subscription_key,
     }
 
     try:
         response = requests.post(url, headers=headers)
-        response.raise_for_status()  # Raise an error for bad responses
-    except requests.exceptions.HTTPError as http_err:
-        logger.error(f"Failed to retrieve access token: {http_err}")
-        return None  # Handle this case as per your logic
-    except Exception as err:
-        logger.error(f"An error occurred while fetching the access token: {err}")
-        return None  # Handle this case as per your logic
+        response.raise_for_status()
+        return response.json().get("access_token")
+    except requests.RequestException as e:
+        logger.error(f"Error fetching access token: {e}")
+        return None
 
-    if response.status_code == 200:
-        response_data = response.json()
-        return response_data.get("access_token")
-    else:
-        logger.error(
-            f"Failed to retrieve access token: {response.status_code}, {response.text}"
-        )
-        return None  # Handle this case as per your logic
+# =================================== confirm_payment ===================================
+def confirm_payment_view(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    customer = order.customer
 
+    # Update payment status
+    order.payment_status = "completed"
+    order.save()
 
+    # Prepare the context
+    context = {
+        "order": order,
+        "customer": customer,
+    }
+
+    # Add success message
+    messages.success(request, "Payment made successfully", extra_tags="bg-success")
+
+    return render(request, "orders/customer_order_history.html", context)
+
+# =================================== payment_flutter_view ===================================
+def payment_flutter_view(request):
+    unique_tx_ref = f"txref-{uuid.uuid4()}"  # Generate a unique transaction reference
+    context = {
+        "unique_tx_ref": unique_tx_ref,
+        "public_key": "FLWPUBK_TEST-02b9b5fc6406bd4a41c3ff141cc45e93-X",
+        "currency": "UGX",
+        "form_title": "Secure Flutterwave Payment",
+    }
+    return render(request, "orders/payment_flutter.html", context)
+
+# =================================== order_confirmation_view ===================================
 @login_required
 def order_confirmation_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, "orders/order_confirmation.html", {"order": order})
 
-
+# =================================== orders_to_be_processed_view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def orders_to_be_processed_view(request):
@@ -326,14 +350,18 @@ def orders_to_be_processed_view(request):
         {"orders": orders, "table_title": table_title},
     )
 
-
+# =================================== customer_order_history_view ===================================
 @login_required
 def customer_order_history_view(request):
     try:
         customer = request.user.customer
         orders = Order.objects.filter(customer=customer).order_by("-created_at")
-
-        return render(request, "orders/order_history.html", {"orders": orders})
+        
+        return render(
+            request,
+            "orders/order_history.html",
+            {"orders": orders, "customer": customer}
+        )
 
     except ObjectDoesNotExist:
         messages.error(
@@ -341,7 +369,7 @@ def customer_order_history_view(request):
         )
         return redirect("users-home")
 
-
+# =================================== all_orders_view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def all_orders_view(request):
@@ -357,7 +385,7 @@ def all_orders_view(request):
     }
     return render(request, "orders/all_orders.html", context)
 
-
+# =================================== order_report_view ===================================
 @login_required
 def order_report_view(request, order_id):
     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
@@ -368,13 +396,13 @@ def order_report_view(request, order_id):
 
     return render(request, "orders/order_report.html", {"order": order})
 
-
+# =================================== order_detail_view ===================================
 @login_required
 def order_detail_view(request, order_id):
     order = get_object_or_404(Order, id=order_id, customer=request.user.customer)
     return render(request, "orders/order_detail.html", {"order": order})
 
-
+# =================================== order_process_view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def order_process_view(request, order_id):

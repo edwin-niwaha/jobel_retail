@@ -49,34 +49,34 @@ class CartItem(models.Model):
         return self.volume.price * self.quantity  # Use volume's price
 
 
-# Constants for choices
-ORDER_STATUS_CHOICES = [
-    ("Pending", "Pending"),
-    ("Shipped", "Shipped"),
-    ("Delivered", "Delivered"),
-    ("Canceled", "Canceled"),
-    ("Refunded", "Refunded"),
-    ("Returned", "Returned"),
-]
-PAYMENT_METHOD_CHOICES = [
-    ("MOBILE_MONEY", "Mobile Money"),
-    # ("BANK_TRANSFER", "Bank Transfer"),
-    # ("CREDIT_CARD", "Credit Card"),
-]
-PAYMENT_STATUS_CHOICES = [
-    ("pending", "Pending"),
-    ("completed", "Completed"),
-    ("failed", "Failed"),
-]
-
-
 class Order(models.Model):
+    # Constants for choices
+    ORDER_STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Shipped", "Shipped"),
+        ("Delivered", "Delivered"),
+        ("Canceled", "Canceled"),
+        ("Refunded", "Refunded"),
+        ("Returned", "Returned"),
+    ]
+    PAYMENT_METHOD_CHOICES = [
+        ('MTN MOMO', 'MTN Mobile Money'),
+        # ('Visa', 'Visa Payment'),
+        # ('MasterCard', 'MasterCard Payment'),
+        # ('PayPal', 'PayPal Payment'),
+        # Add more options as necessary
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("completed", "Completed"),
+        ("failed", "Failed"),
+    ]
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES)
     payment_method = models.CharField(
-        max_length=20, choices=PAYMENT_METHOD_CHOICES, default="Cash"
+        max_length=20, choices=PAYMENT_METHOD_CHOICES, default="MTN MOMO"
     )
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
@@ -87,7 +87,6 @@ class Order(models.Model):
         max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending"
     )
     external_id = models.CharField(max_length=100, blank=True, null=True)
-    payer_phone_number = PhoneNumberField(null=True, blank=True)
 
     def __str__(self):
         # Use customer full name regardless of online or offline

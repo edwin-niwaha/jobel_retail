@@ -13,7 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
 
 # DEBUG = os.environ.get("DEBUG", False)
+# Production
 DEBUG = False
+
+# Development
+# DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'jobelstore.up.railway.app']
 
@@ -138,6 +142,7 @@ if not DATABASES["default"]:
     }
 
 
+
 # Django REST framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -217,6 +222,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_SECRET")
 # Load your MTN credentials from the .env file
 MTN_CLIENT_ID = os.getenv("MTN_CLIENT_ID")
 MTN_CLIENT_SECRET = os.getenv("MTN_CLIENT_SECRET")
+MTN_SUBSCRIPTION_KEY = os.getenv("MTN_SUBSCRIPTION_KEY")
+
 
 # Email configuration (for production)
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
