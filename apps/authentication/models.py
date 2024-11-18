@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
 from django.db import models
 from PIL import Image
 
@@ -15,7 +16,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     role = models.CharField(max_length=15, choices=ROLE_CHOICES, default="guest")
-    avatar = models.ImageField(default="default.jpg", upload_to="profile_images")
+    # avatar = models.ImageField(default="default.jpg", upload_to="profile_images")
+    avatar = CloudinaryField('avatar', default="default.jpg")
     bio = models.TextField()
 
     def __str__(self):

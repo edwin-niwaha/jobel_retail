@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.db import IntegrityError
 from django.db.models import Sum, F, Q

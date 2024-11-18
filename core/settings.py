@@ -3,6 +3,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -107,7 +111,7 @@ TEMPLATES = [
 # WSGI configuration
 WSGI_APPLICATION = "core.wsgi.application"
 
-# Database configuration (PostgreSQL) Local host
+#  # Uncomment for local Database configuration (PostgreSQL)
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",
@@ -141,6 +145,37 @@ if not DATABASES["default"]:
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 
+
+# Static and media files configuration
+
+# Local media storage
+MEDIA_ROOT = BASE_DIR / "media"
+LOCAL_MEDIA_URL = "/media/"
+
+# Static files configuration
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Cloudinary storage configuration
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Cloudinary media URL
+MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/'
+
+# Switch between local and Cloudinary media storage
+# Uncomment for local storage:
+# MEDIA_URL = LOCAL_MEDIA_URL
 
 
 # Django REST framework configuration
@@ -196,15 +231,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static and media files configuration
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]  # Additional static files directory
-
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-
-MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "/media/"
 
 # Login and session settings
 LOGIN_REDIRECT_URL = "/"
