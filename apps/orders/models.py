@@ -60,7 +60,7 @@ class Order(models.Model):
         ("Returned", "Returned"),
     ]
     PAYMENT_METHOD_CHOICES = [
-        ('MTN MOMO', 'MTN Mobile Money'),
+        ('Mobile Money', 'Mobile Money'),
         # ('Visa', 'Visa Payment'),
         # ('MasterCard', 'MasterCard Payment'),
         # ('PayPal', 'PayPal Payment'),

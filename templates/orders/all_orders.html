@@ -48,7 +48,23 @@
                             <td>{{ order.customer.get_full_name }}</td>
                             <td>{{ order.created_at|date:"d M Y, H:i A" }}</td>
                             <td>{{ order.total_amount|floatformat:"2"|intcomma }}</td>
-                            <td>{{ order.status }}</td>
+                            <td>
+                                {% if order.status == 'Pending' %}
+                                  <span class="badge bg-warning">Pending</span>
+                                {% elif order.status == 'Shipped' %}
+                                  <span class="badge bg-info text-dark">Shipped</span>
+                                {% elif order.status == 'Delivered' %}
+                                  <span class="badge bg-success">Delivered</span>
+                                {% elif order.status == 'Canceled' %}
+                                  <span class="badge bg-danger">Canceled</span>
+                                {% elif order.status == 'Refunded' %}
+                                  <span class="badge bg-secondary">Refunded</span>
+                                {% elif order.status == 'Returned' %}
+                                  <span class="badge bg-dark">Returned</span>
+                                {% else %}
+                                  <span class="badge bg-light text-dark">Unknown</span>
+                                {% endif %}
+                              </td>
                             <td>{{ order.payment_method }}</td>
                             <td class="print-hide">
                                 <a href="{% url 'orders:order_detail_view' order.id %}" class="btn btn-sm btn-primary">

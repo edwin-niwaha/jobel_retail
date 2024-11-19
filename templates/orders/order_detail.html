@@ -22,10 +22,20 @@
               </p>
               <p>
                 <strong>Status:</strong>
-                {% if order.status == 'completed' %}
-                  <span class="badge bg-success">Completed</span>
+                {% if order.status == 'Pending' %}
+                  <span class="badge bg-warning">Pending</span>
+                {% elif order.status == 'Shipped' %}
+                  <span class="badge bg-info text-dark">Shipped</span>
+                {% elif order.status == 'Delivered' %}
+                  <span class="badge bg-success">Delivered</span>
+                {% elif order.status == 'Canceled' %}
+                  <span class="badge bg-danger">Canceled</span>
+                {% elif order.status == 'Refunded' %}
+                  <span class="badge bg-secondary">Refunded</span>
+                {% elif order.status == 'Returned' %}
+                  <span class="badge bg-dark">Returned</span>
                 {% else %}
-                  <span class="badge bg-warning text-dark">Pending</span>
+                  <span class="badge bg-light text-dark">Unknown</span>
                 {% endif %}
               </p>
               <p>
@@ -75,18 +85,26 @@
                   <th>Product</th>
                   <th>Volume</th>
                   <th>Quantity</th>
-                  <th>Unit Price</th>
-                  <th>Total Price</th>
+                  <th class="text-right">Unit Price</th>
+                  <th class="text-right">Total Price</th>
                 </tr>
               </thead>
               <tbody>
                 {% for detail in order.details.all %}
                   <tr>
                     <td>{{ detail.product.name }}</td>
-                    <td>{{ detail.product_volume.volume.ml }} ML</td>
+                    <td class="text-center">
+                      {% if detail.product.volumes.all %}
+                        {% with product_volume=detail.product.volumes.all.0 %}
+                          {{ product_volume.ml }} ML
+                        {% endwith %}
+                      {% else %}
+                        No volume specified
+                      {% endif %}
+                    </td>
                     <td class="text-center">{{ detail.quantity }}</td>
-                    <td>{{ detail.price|floatformat:'2'|intcomma }}</td>
-                    <td>{{ detail.total|floatformat:'2'|intcomma }}</td>
+                    <td class="text-right">{{ detail.price|floatformat:'2'|intcomma }}</td>
+                    <td class="text-right">{{ detail.total|floatformat:'2'|intcomma }}</td>
                   </tr>
                 {% empty %}
                   <tr>

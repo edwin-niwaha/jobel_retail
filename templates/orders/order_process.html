@@ -5,12 +5,13 @@
 {% block content %}
   <div class="container py-5">
     <div class="card shadow-lg border-0">
-      <div class="card-header bg-primary text-white">
-        <h2 class="mb-0 text-center">Process Order - {{ order.id }}</h2>
+      <div class="card-header bg-primary text-white text-center">
+        <h2 class="mb-0">Process Order - {{ order.id }}</h2>
       </div>
       <div class="card-body">
         <!-- Order & Customer Details -->
         <div class="row g-4">
+          <!-- Order Details -->
           <div class="col-md-6">
             <h4 class="border-bottom pb-2 text-secondary">Order Details</h4>
             <p>
@@ -21,21 +22,31 @@
             </p>
             <p>
               <strong>Status:</strong>
-              <span class="badge {% if order.status == 'Completed' %}
-                  bg-success
-                {% else %}
-                  bg-warning
-                {% endif %}">
-                {{ order.status }}
-              </span>
+              {% if order.status == 'Pending' %}
+                <span class="badge bg-warning">Pending</span>
+              {% elif order.status == 'Shipped' %}
+                <span class="badge bg-info text-dark">Shipped</span>
+              {% elif order.status == 'Delivered' %}
+                <span class="badge bg-success">Delivered</span>
+              {% elif order.status == 'Canceled' %}
+                <span class="badge bg-danger">Canceled</span>
+              {% elif order.status == 'Refunded' %}
+                <span class="badge bg-secondary">Refunded</span>
+              {% elif order.status == 'Returned' %}
+                <span class="badge bg-dark">Returned</span>
+              {% else %}
+                <span class="badge bg-light text-dark">Unknown</span>
+              {% endif %}
             </p>
             <p>
-              <strong>Total Amount:</strong> ${{ order.total_amount|floatformat:'2'|intcomma }}
+              <strong>Total Amount:</strong> {{ order.total_amount|floatformat:'2'|intcomma }}
             </p>
             <p>
               <strong>Payment Method:</strong> {{ order.payment_method }}
             </p>
           </div>
+
+          <!-- Customer Information -->
           <div class="col-md-6">
             <h4 class="border-bottom pb-2 text-secondary">Customer Information</h4>
             <p>
@@ -61,18 +72,28 @@
               <thead class="table-light">
                 <tr>
                   <th>Product</th>
+                  <th>Volume</th>
                   <th>Quantity</th>
-                  <th>Unit Price</th>
-                  <th>Total Price</th>
+                  <th class="text-right">Unit Price</th>
+                  <th class="text-right">Total Price</th>
                 </tr>
               </thead>
               <tbody>
                 {% for detail in order.details.all %}
                   <tr>
                     <td>{{ detail.product.name }}</td>
+                    <td>
+                      {% if detail.product.volumes.all %}
+                        {% with product_volume=detail.product.volumes.all.0 %}
+                          {{ product_volume.ml }} ML
+                        {% endwith %}
+                      {% else %}
+                        No volume specified
+                      {% endif %}
+                    </td>
                     <td>{{ detail.quantity }}</td>
-                    <td>${{ detail.price|floatformat:'2'|intcomma }}</td>
-                    <td>${{ detail.total|floatformat:'2'|intcomma }}</td>
+                    <td class="text-right">{{ detail.price|floatformat:'2'|intcomma }}</td>
+                    <td class="text-right">{{ detail.total|floatformat:'2'|intcomma }}</td>
                   </tr>
                 {% empty %}
                   <tr>

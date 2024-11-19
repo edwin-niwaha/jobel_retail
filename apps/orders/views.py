@@ -386,13 +386,34 @@ def all_orders_view(request):
     return render(request, "orders/all_orders.html", context)
 
 # =================================== order_report_view ===================================
+# @login_required
+# def order_report_view(request, order_id):
+#     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
+
+#     print("Order Details Count:", order.details.count())
+#     for detail in order.details.all():
+#         print(detail.product.name, detail.quantity, detail.price)
+
+#     return render(request, "orders/order_report.html", {"order": order})
+
 @login_required
 def order_report_view(request, order_id):
-    order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
+    # Fetch order with its details, and prefetch related volumes through ProductVolume
+    order = get_object_or_404(Order.objects.prefetch_related(
+        'details__product__volumes',  # Prefetch volumes related to products in the order
+    ), id=order_id)
 
     print("Order Details Count:", order.details.count())
+
+    # Printing product names, quantities, prices, and volume details for debugging
     for detail in order.details.all():
         print(detail.product.name, detail.quantity, detail.price)
+        
+        # Fetch the first associated volume for each product (or logic for selecting one volume)
+        product_volumes = detail.product.volumes.all()
+        if product_volumes:
+            volume = product_volumes[0]  # Assuming we take the first volume if available
+            print("Volume ML:", volume.ml)  # Print the volume in ML
 
     return render(request, "orders/order_report.html", {"order": order})
 
