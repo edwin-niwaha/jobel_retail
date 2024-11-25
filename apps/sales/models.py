@@ -89,3 +89,4 @@ class SaleDetail(models.Model):
             + " Quantity: "
             + str(self.quantity)
         )
+

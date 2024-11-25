@@ -34,7 +34,7 @@ class Category(models.Model):
         verbose_name="Name",
     )
     description = models.CharField(
-        max_length=50, blank=True, verbose_name="Description"
+        max_length=100, blank=True, verbose_name="Description"
     )
 
     class Meta:

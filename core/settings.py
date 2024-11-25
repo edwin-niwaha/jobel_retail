@@ -23,9 +23,9 @@ DEBUG = False
 # Development
 # DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'jobelstore.up.railway.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'jobellstore.up.railway.app']
 
-CSRF_TRUSTED_ORIGINS = ['https://jobelstore.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://jobellstore.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -170,10 +170,10 @@ CLOUDINARY_STORAGE = {
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# Cloudinary media URL
+# Cloudinary media URL online
 MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/'
 
-# Switch between local and Cloudinary media storage
+# Switch between local
 # Uncomment for local storage:
 # MEDIA_URL = LOCAL_MEDIA_URL
 
@@ -252,12 +252,14 @@ MTN_SUBSCRIPTION_KEY = os.getenv("MTN_SUBSCRIPTION_KEY")
 
 
 # Email configuration (for production)
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.gmail.com"
-# EMAIL_USE_TLS = True
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = os.getenv("EMAIL_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
+
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

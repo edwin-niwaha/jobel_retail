@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Prefetch
 from .models import Inventory
 from .forms import InventoryForm
-from apps.products.models import Product
+from apps.products.models import Product, ProductVolume, Volume
 
 from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,

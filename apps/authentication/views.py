@@ -34,6 +34,10 @@ from .models import (
     Contact,
 )
 
+import logging
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 # =================================== Register User  ===================================
 class RegisterView(View):
@@ -220,37 +224,89 @@ def delete_profile(request, pk):
 
 # ===================================  Contact Us  ===================================
 @transaction.atomic
+# def contact_us(request):
+#     if request.method == "POST":
+#         form = ContactForm(request.POST)
+#         if form.is_valid():
+#             instance = form.save()
+
+#             try:
+#                 # Send email to the user
+#                 subject = "Your message has been received"
+#                 message = f"Hello {instance.name},\n\nYour message has been received. \
+# We will get back to you soon!\n\nThanks,\nJobel - Jobel_retail RETAIL MANAGER\nManagement"
+#                 from_email = (
+#                     settings.EMAIL_HOST_USER
+#                 )  # Use default from email from settings
+#                 to = [instance.email]  # Access email entered in the form
+#                 send_mail(subject, message, from_email, to)
+
+#                 # Set success message
+#                 messages.success(
+#                     request,
+#                     "Your message has been sent successfully. \
+# We will get back to you soon!",
+#                     extra_tags="bg-success",
+#                 )
+#             except Exception as e:
+#                 # Handle exceptions such as email address not found or internet being off
+#                 print("An error occurred while sending email:", str(e))
+#                 messages.error(
+#                     request,
+#                     "Sorry, an error occurred while sending your \
+# message. Please try again later.",
+#                     extra_tags="bg-danger",
+#                 )
+
+#             # Redirect to the contact page
+#             return HttpResponseRedirect(reverse("contact_us"))
+#     else:
+#         form = ContactForm()
+
+#     return render(request, "accounts/contact_us.html", {"form": form})
+
+def send_contact_email(name, email):
+    """
+    Helper function to send email after contact form submission.
+    """
+    subject = "Your message has been received"
+    message = (
+        f"Hello {name},\n\n"
+        "Your message has been received. We will get back to you soon!\n\n"
+        "Thanks,\nJobel_Inc\nManagement"
+    )
+    from_email = getattr(settings, 'EMAIL_HOST_USER', None)
+    to = [email]
+
+    try:
+        send_mail(subject, message, from_email, to)
+        return True
+    except Exception as e:
+        logger.error(f"Error sending email to {email}: {str(e)}")
+        return False
+
 def contact_us(request):
+    """
+    Handles the contact us form submissions and sends a confirmation email.
+    """
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
             instance = form.save()
 
-            try:
-                # Send email to the user
-                subject = "Your message has been received"
-                message = f"Hello {instance.name},\n\nYour message has been received. \
-We will get back to you soon!\n\nThanks,\nJobel - Jobel_retail RETAIL MANAGER\nManagement"
-                from_email = (
-                    settings.EMAIL_HOST_USER
-                )  # Use default from email from settings
-                to = [instance.email]  # Access email entered in the form
-                send_mail(subject, message, from_email, to)
+            # Attempt to send the confirmation email
+            email_sent = send_contact_email(instance.name, instance.email)
 
-                # Set success message
+            if email_sent:
                 messages.success(
                     request,
-                    "Your message has been sent successfully. \
-We will get back to you soon!",
+                    "Your message has been sent successfully. We will get back to you soon!",
                     extra_tags="bg-success",
                 )
-            except Exception as e:
-                # Handle exceptions such as email address not found or internet being off
-                print("An error occurred while sending email:", str(e))
+            else:
                 messages.error(
                     request,
-                    "Sorry, an error occurred while sending your \
-message. Please try again later.",
+                    "Sorry, an error occurred while sending your message. Please try again later.",
                     extra_tags="bg-danger",
                 )
 
@@ -260,7 +316,6 @@ message. Please try again later.",
         form = ContactForm()
 
     return render(request, "accounts/contact_us.html", {"form": form})
-
 
 # =================================== Display User Feedback ===================================
 @login_required

@@ -1,9 +1,13 @@
+from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+
+from django.conf import settings
 from django.contrib import messages
 import requests
 import uuid
 from django.http import JsonResponse
 import logging
-from django.conf import settings
 import base64
 from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
@@ -118,15 +122,170 @@ def cart_view(request):
     return render(request, "orders/cart.html", context)
 
 # =================================== checkout_view ===================================
+# @login_required
+# def checkout_view(request):
+#     try:
+#         cart = Cart.objects.get(user=request.user)
+#     except Cart.DoesNotExist:
+#         messages.error(request, "Your cart is empty.")
+#         return redirect(
+#             "orders:cart_view"
+#         )  # Redirect to cart view if the cart is empty
+
+#     # Get or create a customer entry for the current user
+#     customer, created = Customer.objects.get_or_create(user=request.user)
+
+#     if request.method == "POST":
+#         form = CheckoutForm(request.POST)
+#         if form.is_valid():
+#             total_amount = cart.get_total_price()
+
+#             # Update the customer's information from the form
+#             customer.first_name = form.cleaned_data["first_name"]
+#             customer.last_name = form.cleaned_data["last_name"]
+#             customer.email = form.cleaned_data["email"]
+#             customer.phone = form.cleaned_data["phone"]
+#             customer.address = form.cleaned_data["address"]
+#             customer.save()  # Save the updated customer information
+
+#             # Create the order
+#             order = Order.objects.create(
+#                 customer=customer,
+#                 created_at=timezone.now(),
+#                 total_amount=total_amount,
+#                 status="Pending",  # Or set a default status
+#             )
+
+#             # Create OrderDetail entries for each item in the cart
+#             for item in cart.items.all():
+#                 # item.volume refers to the ProductVolume
+#                 OrderDetail.objects.create(
+#                     order=order,
+#                     product=item.product,
+#                     quantity=item.quantity,
+#                     price=item.volume.price,  # Use price from ProductVolume
+#                 )
+
+#             # Clear the cart items after checkout
+#             cart.items.all().delete()
+
+#             # Optionally, redirect to an order confirmation page
+#             messages.success(
+#                 request,
+#                 f"Your order has been placed successfully! Order ID: {order.id}",
+#             )
+#             return redirect("orders:order_confirmation", order_id=order.id)
+
+#     else:
+#         # Prepopulate the form with existing customer data if available
+#         form = CheckoutForm(
+#             initial={
+#                 "first_name": customer.first_name,
+#                 "last_name": customer.last_name,
+#                 "email": customer.email,
+#                 "phone": customer.phone,
+#                 "address": customer.address,
+#             }
+#         )
+
+#     return render(request, "orders/checkout.html", {"form": form, "cart": cart})
+
+# def send_order_email(recipient_name, recipient_email, order_id, is_customer=True):
+#     """
+#     Send email to customer or retail after order is placed.
+#     """
+#     subject = "Your Order has been Placed" if is_customer else "New Order Received"
+    
+#     if is_customer:
+#         message = (
+#             f"Hello {recipient_name},\n\n"
+#             f"Thank you for your purchase! Your order ID is {order_id}.\n\n"
+#             "You can view your order details and track the status in your account.\n\n"
+#             "Thanks for shopping with us!\nJobel_Inc\nManagement"
+#         )
+#     else:
+#         message = (
+#             f"Hello Jobell_Inc,\n\n"
+#             f"A new order has been placed. The Order ID is {order_id}.\n\n"
+#             "Please review and process the order.\n\n"
+#             "Thanks,\nJobel_Inc\nManagement"
+#         )
+
+#     from_email = getattr(settings, 'EMAIL_HOST_USER', None)  # This will be the sender's email
+#     to = [recipient_email]
+
+#     try:
+#         send_mail(subject, message, from_email, to)
+#         return True
+#     except Exception as e:
+#         logger.error(f"Error sending email to {recipient_email}: {str(e)}")
+#         return False
+    
+
+def send_order_email(recipient_name, recipient_email, order_id, is_customer=True):
+    """
+    Send stylish email to customer or retail after order is placed, including respective links.
+    """
+    customer_order_history_url = "https://jobellstore.up.railway.app/api/orders/order-history/"
+    orders_to_be_processed_url = "https://jobellstore.up.railway.app/api/orders/to-be-processed/"
+    subject = "Your Order has been Placed" if is_customer else "New Order to Process"
+
+    if is_customer:
+        email_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #2E86C1; text-align: center;">Thank You for Your Purchase!</h2>
+                <p>Hello <strong>{recipient_name}</strong>,</p>
+                <p>Your order ID is <strong>{order_id}</strong>. You can view your order details and track the status by clicking the button below:</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="{customer_order_history_url}" style="background-color: #2E86C1; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px;">View Order History</a>
+                </div>
+                <p>Thanks for shopping with us!</p>
+                <p style="color: #888;">- Jobel_Inc Management</p>
+            </div>
+        </body>
+        </html>
+        """
+    else:
+        email_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #C0392B; text-align: center;">New Order to Process</h2>
+                <p>Hello <strong>Jobel_Inc Team</strong>,</p>
+                <p>A new order has been placed. The order ID is <strong>{order_id}</strong>. Please review and process the order by clicking the button below:</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="{orders_to_be_processed_url}" style="background-color: #C0392B; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px;">Process Order</a>
+                </div>
+                <p>Thanks for your prompt attention!</p>
+                <p style="color: #888;">- Jobel_Inc Management</p>
+            </div>
+        </body>
+        </html>
+        """
+
+    from_email = getattr(settings, 'EMAIL_HOST_USER', None)
+    to = [recipient_email]
+
+    # Send HTML email
+    try:
+        email = EmailMultiAlternatives(subject, strip_tags(email_body), from_email, to)
+        email.attach_alternative(email_body, "text/html")
+        email.send()
+        return True
+    except Exception as e:
+        logger.error(f"Error sending email to {recipient_email}: {str(e)}")
+        return False
+
+
 @login_required
 def checkout_view(request):
     try:
         cart = Cart.objects.get(user=request.user)
     except Cart.DoesNotExist:
         messages.error(request, "Your cart is empty.")
-        return redirect(
-            "orders:cart_view"
-        )  # Redirect to cart view if the cart is empty
+        return redirect("orders:cart_view")  # Redirect to cart view if the cart is empty
 
     # Get or create a customer entry for the current user
     customer, created = Customer.objects.get_or_create(user=request.user)
@@ -165,11 +324,12 @@ def checkout_view(request):
             # Clear the cart items after checkout
             cart.items.all().delete()
 
+            # Send email to customer and retail (both using the same sender email)
+            send_order_email(customer.first_name, customer.email, order.id, is_customer=True)
+            send_order_email('Jobell_Inc', settings.EMAIL_HOST_USER, order.id, is_customer=False)
+
             # Optionally, redirect to an order confirmation page
-            messages.success(
-                request,
-                f"Your order has been placed successfully! Order ID: {order.id}",
-            )
+            messages.success(request, f"Your order has been placed successfully! Order ID: {order.id}")
             return redirect("orders:order_confirmation", order_id=order.id)
 
     else:
@@ -386,16 +546,6 @@ def all_orders_view(request):
     return render(request, "orders/all_orders.html", context)
 
 # =================================== order_report_view ===================================
-# @login_required
-# def order_report_view(request, order_id):
-#     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
-
-#     print("Order Details Count:", order.details.count())
-#     for detail in order.details.all():
-#         print(detail.product.name, detail.quantity, detail.price)
-
-#     return render(request, "orders/order_report.html", {"order": order})
-
 @login_required
 def order_report_view(request, order_id):
     # Fetch order with its details, and prefetch related volumes through ProductVolume

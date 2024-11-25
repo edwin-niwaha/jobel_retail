@@ -1,3 +1,6 @@
+import logging
+from decimal import Decimal
+from collections import OrderedDict
 from django.shortcuts import render, redirect, get_object_or_404
 from collections import defaultdict
 from django.contrib import messages
@@ -6,13 +9,17 @@ from django.db.models import Sum, F
 from django.db import transaction
 from django.shortcuts import render, redirect
 from datetime import datetime, date
+from openpyxl import load_workbook
 from .forms import (
     ChartOfAccountsForm,
     IncomeTransactionForm,
     ExpenseTransactionForm,
     TransactionFormSet,
+    ImportCOAForm
 )
+from apps.sales.models import SaleDetail
 from .models import ChartOfAccounts, Transaction
+from apps.sales.forms import ReportPeriodForm
 
 from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,
@@ -20,6 +27,8 @@ from apps.authentication.decorators import (
     admin_required,
 )
 
+
+logger = logging.getLogger(__name__)
 
 # =================================== Account List view ===================================
 def chart_of_accounts_list_view(request):
@@ -38,6 +47,105 @@ def chart_of_accounts_list_view(request):
         "table_title": "Chart of Accounts",
     }
     return render(request, "finance/chart_of_accounts_list.html", context)
+
+# =================================== Process and Import Excel data ===================================
+@login_required
+@admin_required
+@transaction.atomic
+def import_coa_data(request):
+    if request.method == "POST":
+        form = ImportCOAForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES.get("excel_file")
+            if excel_file and excel_file.name.endswith(".xlsx"):
+                try:
+                    # Call process_and_import_accounts_data function
+                    errors = process_and_import_accounts_data(excel_file)
+                    if errors:
+                        for error in errors:
+                            messages.error(request, error, extra_tags="bg-danger")
+                    else:
+                        messages.success(
+                            request,
+                            "Data imported successfully!",
+                            extra_tags="bg-success",
+                        )
+                except Exception as e:
+                    messages.error(
+                        request, f"Error importing data: {e}", extra_tags="bg-danger"
+                    )
+                return redirect("finance:chart_of_accounts_list")
+            else:
+                messages.error(
+                    request, "Please upload a valid Excel file.", extra_tags="bg-danger"
+                )
+    else:
+        form = ImportCOAForm()
+    return render(
+        request,
+        "finance/accounts_import.html",
+        {"form_name": "Import Accounts - Excel", "form": form},
+    )
+
+
+# Function to import Excel data
+@transaction.atomic
+def process_and_import_accounts_data(excel_file):
+    errors = []
+    try:
+        wb = load_workbook(excel_file)
+        sheet = wb.active
+
+        for row_num, row in enumerate(sheet.iter_rows(min_row=2), start=2):
+            account_name = row[0].value
+            account_type = row[1].value
+            account_number = row[2].value
+            description = row[3].value
+
+            # Ensure account_number is treated as a string
+            if account_number is None:
+                errors.append(f"Missing account number on row {row_num}")
+                continue
+
+            # Convert to string, even if it's a number
+            account_number = str(account_number)
+
+            if account_name and account_type and account_number:
+                try:
+                    # Validate account type
+                    if (
+                        account_type
+                        not in dict(ChartOfAccounts.ACCOUNT_TYPE_CHOICES).keys()
+                    ):
+                        errors.append(
+                            f"Invalid account type '{account_type}' on row {row_num}"
+                        )
+                        continue
+
+                    # Validate that the account number is numeric
+                    if not account_number.isdigit():
+                        errors.append(
+                            f"Account number must be numeric on row {row_num}"
+                        )
+                        continue
+
+                    # Create the account
+                    ChartOfAccounts.objects.create(
+                        account_name=account_name,
+                        account_type=account_type,
+                        account_number=account_number,
+                        description=description,
+                    )
+                except Exception as e:
+                    errors.append(f"Error on row {row_num}: {e}")
+                    logger.error(f"Error on row {row_num}: {e}")
+            else:
+                errors.append(f"Missing required fields on row {row_num}")
+    except Exception as e:
+        errors.append(f"Failed to process the Excel file: {e}")
+        logger.error(f"Failed to process the Excel file: {e}")
+
+    return errors
 
 
 # =================================== Add Account view ===================================
@@ -324,3 +432,245 @@ def ledger_report_view(request):
             "opening_balance": opening_balance,  # Pass opening balance to template
         },
     )
+
+
+# =================================== profit_and_loss_view ===================================
+# @login_required
+# @admin_or_manager_required
+# def profit_and_loss_view(request):
+#     # Default date range values
+#     start_date = None
+#     end_date = None
+
+#     # Initialize the profit and loss sections with dynamic sections
+#     profit_and_loss = {
+#         "Income": [],
+#         "Expenses": [],
+#         "Summary": [
+#             {"label": "Gross Profit", "value": 0.0},
+#             {"label": "Net Profit", "value": 0.0},
+#         ],
+#     }
+
+#     # Initialize the form
+#     form = ReportPeriodForm(request.GET or None)
+
+#     if form.is_valid():
+#         # Extract the start and end dates from the form
+#         start_date = form.cleaned_data["start_date"]
+#         end_date = form.cleaned_data["end_date"]
+
+#         # Filter data based on the date range
+#         sales_details = SaleDetail.objects.filter(
+#             sale__trans_date__range=(start_date, end_date)
+#         )
+#         expense_transactions = Transaction.objects.filter(
+#             transaction_date__range=(start_date, end_date),
+#             account__account_type="expense",
+#         )
+#         other_income_transactions = Transaction.objects.filter(
+#             transaction_date__range=(start_date, end_date),
+#             account__account_type="revenue",
+#         ).exclude(account__account_name="Sales Revenue")
+
+#         # Calculate Revenue: Sum of (selling price * quantity sold)
+#         revenue = (
+#             sales_details.annotate(
+#                 selling_price=F("product__productvolume__price")
+#             )
+#             .aggregate(total_revenue=Sum(F("selling_price") * F("quantity")))["total_revenue"]
+#             or 0
+#         )
+
+#         # Calculate Other Income: Sum of amounts for income transactions excluding sales revenue
+#         other_income = (
+#             other_income_transactions.aggregate(total_income=Sum("amount"))["total_income"] or 0
+#         )
+
+#         # Calculate Total Income (Revenue + Other Income)
+#         total_income = revenue + other_income
+
+#         # Dynamic Operating Expenses Calculation (Aggregate by Account Name or Account Type)
+#         expense_categories = expense_transactions.values('account__account_name').annotate(total_expense=Sum('amount'))
+
+#         operating_expenses = {}
+#         for category in expense_categories:
+#             operating_expenses[category['account__account_name']] = category['total_expense']
+
+#         total_expenses = sum(operating_expenses.values())
+
+#         # Calculate COGS (Cost of Goods Sold)
+#         cogs = (
+#             sales_details.annotate(
+#                 cost_price=F("product__productvolume__cost")
+#             )
+#             .aggregate(total_cogs=Sum(F("cost_price") * F("quantity")))["total_cogs"]
+#             or 0
+#         )
+
+#         # Calculate Gross Profit (Revenue - COGS)
+#         gross_profit = revenue - cogs
+
+#         # Calculate Net Profit (Gross Profit + Other Income - Operating Expenses)
+#         net_profit = gross_profit + other_income - total_expenses
+
+#         # Update the profit_and_loss dictionary with dynamic values
+#         # Income Section
+#         profit_and_loss["Income"].append({"label": "Sales Revenue", "value": revenue})
+
+#         # Split Other Income into categories (if applicable)
+#         other_income_categories = other_income_transactions.values('account__account_name').annotate(total_other_income=Sum('amount'))
+#         for income_category in other_income_categories:
+#             profit_and_loss["Income"].append({
+#                 "label": income_category['account__account_name'],
+#                 "value": income_category['total_other_income']
+#             })
+
+#         profit_and_loss["Income"].append({"label": "Total Other Income", "value": other_income})
+#         profit_and_loss["Income"].append({"label": "Total Income", "value": total_income})
+
+#         # Expenses Section (Dynamic categories from operating_expenses)
+#         for category, value in operating_expenses.items():
+#             profit_and_loss["Expenses"].append({"label": category, "value": value})
+
+#         # Add the total expenses
+#         profit_and_loss["Expenses"].append({"label": "Total Expenses", "value": total_expenses})
+
+#         # Add Cost of Goods Sold (COGS)
+#         profit_and_loss["Expenses"].append({"label": "Cost of Goods Sold (COGS)", "value": cogs})
+
+#         # Summary Section
+#         profit_and_loss["Summary"][0]["value"] = gross_profit
+#         profit_and_loss["Summary"][1]["value"] = net_profit
+
+#     # Pass data to the template
+#     context = {
+#         "form": form,
+#         "profit_and_loss": profit_and_loss,
+#         "start_date": start_date,
+#         "end_date": end_date,
+#         "table_title": "Profit and Loss Statement",
+#     }
+#     return render(request, "finance/profit_and_loss.html", context)
+
+@login_required
+@admin_or_manager_required
+def profit_and_loss_view(request):
+    # Default date range values
+    start_date = None
+    end_date = None
+
+    # Initialize the profit and loss sections with dynamic sections
+    profit_and_loss = {
+        "Income": [],
+        "Expenses": [],
+        "Summary": [
+            {"label": "Gross Profit", "value": 0.0},
+            {"label": "Net Profit", "value": 0.0},
+        ],
+    }
+
+    # Initialize the form
+    form = ReportPeriodForm(request.GET or None)
+
+    if form.is_valid():
+        # Extract the start and end dates from the form
+        start_date = form.cleaned_data["start_date"]
+        end_date = form.cleaned_data["end_date"]
+
+        # Filter data based on the date range
+        sales_details = SaleDetail.objects.filter(
+            sale__trans_date__range=(start_date, end_date)
+        )
+        expense_transactions = Transaction.objects.filter(
+            transaction_date__range=(start_date, end_date),
+            account__account_type="expense",
+        )
+        other_income_transactions = Transaction.objects.filter(
+            transaction_date__range=(start_date, end_date),
+            account__account_type="revenue",
+        ).exclude(account__account_name="Sales Revenue")
+
+        # Calculate Revenue: Sum of (selling price * quantity sold)
+        revenue = (
+            sales_details.annotate(
+                selling_price=F("product__productvolume__price")
+            )
+            .aggregate(total_revenue=Sum(F("selling_price") * F("quantity")))["total_revenue"]
+            or 0
+        )
+
+        # Calculate Other Income: Sum of amounts for income transactions excluding sales revenue
+        other_income = (
+            other_income_transactions.aggregate(total_income=Sum("amount"))["total_income"] or 0
+        )
+
+        # Calculate Total Income (Revenue + Other Income)
+        total_income = revenue + other_income
+
+        # Dynamic Operating Expenses Calculation (Aggregate by Account Name or Account Type)
+        expense_categories = expense_transactions.values('account__account_name', 'account__account_number').annotate(total_expense=Sum('amount')).order_by('account__account_number')
+
+        operating_expenses = {}
+        for category in expense_categories:
+            account_name = category['account__account_name']
+            account_number = category['account__account_number']
+            operating_expenses[f"{account_number} - {account_name}"] = category['total_expense']
+
+        total_expenses = sum(operating_expenses.values())
+
+        # Calculate COGS (Cost of Goods Sold)
+        cogs = (
+            sales_details.annotate(
+                cost_price=F("product__productvolume__cost")
+            )
+            .aggregate(total_cogs=Sum(F("cost_price") * F("quantity")))["total_cogs"]
+            or 0
+        )
+
+        # Calculate Gross Profit (Revenue - COGS)
+        gross_profit = revenue - cogs
+
+        # Calculate Net Profit (Gross Profit + Other Income - Operating Expenses)
+        net_profit = gross_profit + other_income - total_expenses
+
+        # Update the profit_and_loss dictionary with dynamic values
+        # Income Section
+        profit_and_loss["Income"].append({"label": "Sales Revenue", "value": revenue})
+
+        # Split Other Income into categories (if applicable)
+        other_income_categories = other_income_transactions.values('account__account_name', 'account__account_number').annotate(total_other_income=Sum('amount')).order_by('account__account_number')
+        for income_category in other_income_categories:
+            account_name = income_category['account__account_name']
+            account_number = income_category['account__account_number']
+            profit_and_loss["Income"].append({
+                "label": f"{account_number} - {account_name}",
+                "value": income_category['total_other_income']
+            })
+
+        profit_and_loss["Income"].append({"label": "Total Other Income", "value": other_income})
+        profit_and_loss["Income"].append({"label": "Total Income", "value": total_income})
+
+        # Expenses Section (Dynamic categories from operating_expenses)
+        for category, value in operating_expenses.items():
+            profit_and_loss["Expenses"].append({"label": category, "value": value})
+
+        # Add the total expenses
+        profit_and_loss["Expenses"].append({"label": "Total Expenses", "value": total_expenses})
+
+        # Add Cost of Goods Sold (COGS)
+        profit_and_loss["Expenses"].append({"label": "Cost of Goods Sold (COGS)", "value": cogs})
+
+        # Summary Section
+        profit_and_loss["Summary"][0]["value"] = gross_profit
+        profit_and_loss["Summary"][1]["value"] = net_profit
+
+    # Pass data to the template
+    context = {
+        "form": form,
+        "profit_and_loss": profit_and_loss,
+        "start_date": start_date,
+        "end_date": end_date,
+        "table_title": "Profit and Loss Statement",
+    }
+    return render(request, "finance/profit_and_loss.html", context)
