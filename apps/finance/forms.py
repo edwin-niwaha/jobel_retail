@@ -1,8 +1,6 @@
 from django import forms
 from django.forms import modelformset_factory
 from .models import Transaction, ChartOfAccounts
-from django.core.exceptions import ValidationError
-import datetime
 
 
 # =================================== ChartOfAccountsForm ===================================
@@ -42,10 +40,12 @@ class ChartOfAccountsForm(forms.ModelForm):
             )
         return account_name
 
+
 # =================================== ImportCOAForm ===================================
 class ImportCOAForm(forms.Form):
     excel_file = forms.FileField()
     excel_file.widget.attrs["class"] = "form-control-file"
+
 
 # =================================== IncomeTransactionForm ===================================
 class IncomeTransactionForm(forms.ModelForm):

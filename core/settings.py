@@ -3,9 +3,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,9 +20,9 @@ DEBUG = False
 # Development
 # DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'jobellstore.up.railway.app']
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "jobellstore.up.railway.app"]
 
-CSRF_TRUSTED_ORIGINS = ['https://jobellstore.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ["https://jobellstore.up.railway.app"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -75,8 +72,8 @@ MIDDLEWARE = [
 
 # CORS allowed origins
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 # URL routing
@@ -127,10 +124,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database configuration (PostgreSQL) Online
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv(
-            "DATABASE_URL",
-            None  # Use DATABASE_URL if provided
-        )
+        default=os.getenv("DATABASE_URL", None)  # Use DATABASE_URL if provided
     )
 }
 
@@ -158,20 +152,20 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Cloudinary storage configuration
-CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
-CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
-CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
-    'API_KEY': CLOUDINARY_API_KEY,
-    'API_SECRET': CLOUDINARY_API_SECRET,
+    "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+    "API_KEY": CLOUDINARY_API_KEY,
+    "API_SECRET": CLOUDINARY_API_SECRET,
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # Cloudinary media URL online
-MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/'
+MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/"
 
 # Switch between local
 # Uncomment for local storage:
@@ -258,7 +252,6 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv("EMAIL_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
-
 
 
 # Default primary key field type

@@ -2,7 +2,6 @@ import json
 from django.http import JsonResponse
 from datetime import date, timedelta
 from django.db.models.functions import ExtractYear
-from django.utils.timezone import now
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, FloatField, F
 from django.db.models.functions import Coalesce
@@ -10,11 +9,9 @@ from django.shortcuts import render
 from django.db.models import Min, Max
 
 from apps.products.models import Product, Category
-from apps.sales.models import Sale, SaleDetail
+from apps.sales.models import Sale
 
 from apps.authentication.decorators import (
-    admin_or_manager_required,
-    admin_required,
     admin_or_manager_or_staff_required,
 )
 

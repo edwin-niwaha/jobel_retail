@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-from phonenumber_field.modelfields import PhoneNumberField
 from apps.products.models import Product, ProductVolume
 from apps.customers.models import Customer
 
@@ -60,7 +59,7 @@ class Order(models.Model):
         ("Returned", "Returned"),
     ]
     PAYMENT_METHOD_CHOICES = [
-        ('Mobile Money', 'Mobile Money'),
+        ("Mobile Money", "Mobile Money"),
         # ('Visa', 'Visa Payment'),
         # ('MasterCard', 'MasterCard Payment'),
         # ('PayPal', 'PayPal Payment'),

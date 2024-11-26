@@ -1,21 +1,17 @@
 import logging
-from decimal import Decimal
-from collections import OrderedDict
 from django.shortcuts import render, redirect, get_object_or_404
-from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, F
 from django.db import transaction
-from django.shortcuts import render, redirect
-from datetime import datetime, date
+from datetime import date
 from openpyxl import load_workbook
 from .forms import (
     ChartOfAccountsForm,
     IncomeTransactionForm,
     ExpenseTransactionForm,
     TransactionFormSet,
-    ImportCOAForm
+    ImportCOAForm,
 )
 from apps.sales.models import SaleDetail
 from .models import ChartOfAccounts, Transaction
@@ -29,6 +25,7 @@ from apps.authentication.decorators import (
 
 
 logger = logging.getLogger(__name__)
+
 
 # =================================== Account List view ===================================
 def chart_of_accounts_list_view(request):
@@ -47,6 +44,7 @@ def chart_of_accounts_list_view(request):
         "table_title": "Chart of Accounts",
     }
     return render(request, "finance/chart_of_accounts_list.html", context)
+
 
 # =================================== Process and Import Excel data ===================================
 @login_required
@@ -553,6 +551,7 @@ def ledger_report_view(request):
 #     }
 #     return render(request, "finance/profit_and_loss.html", context)
 
+
 @login_required
 @admin_or_manager_required
 def profit_and_loss_view(request):
@@ -595,27 +594,39 @@ def profit_and_loss_view(request):
         revenue = (
             sales_details.annotate(
                 selling_price=F("product__productvolume__price")
-            )
-            .aggregate(total_revenue=Sum(F("selling_price") * F("quantity")))["total_revenue"]
+            ).aggregate(total_revenue=Sum(F("selling_price") * F("quantity")))[
+                "total_revenue"
+            ]
             or 0
         )
 
         # Calculate Other Income: Sum of amounts for income transactions excluding sales revenue
         other_income = (
-            other_income_transactions.aggregate(total_income=Sum("amount"))["total_income"] or 0
+            other_income_transactions.aggregate(total_income=Sum("amount"))[
+                "total_income"
+            ]
+            or 0
         )
 
         # Calculate Total Income (Revenue + Other Income)
         total_income = revenue + other_income
 
         # Dynamic Operating Expenses Calculation (Aggregate by Account Name or Account Type)
-        expense_categories = expense_transactions.values('account__account_name', 'account__account_number').annotate(total_expense=Sum('amount')).order_by('account__account_number')
+        expense_categories = (
+            expense_transactions.values(
+                "account__account_name", "account__account_number"
+            )
+            .annotate(total_expense=Sum("amount"))
+            .order_by("account__account_number")
+        )
 
         operating_expenses = {}
         for category in expense_categories:
-            account_name = category['account__account_name']
-            account_number = category['account__account_number']
-            operating_expenses[f"{account_number} - {account_name}"] = category['total_expense']
+            account_name = category["account__account_name"]
+            account_number = category["account__account_number"]
+            operating_expenses[f"{account_number} - {account_name}"] = category[
+                "total_expense"
+            ]
 
         total_expenses = sum(operating_expenses.values())
 
@@ -623,8 +634,7 @@ def profit_and_loss_view(request):
         cogs = (
             sales_details.annotate(
                 cost_price=F("product__productvolume__cost")
-            )
-            .aggregate(total_cogs=Sum(F("cost_price") * F("quantity")))["total_cogs"]
+            ).aggregate(total_cogs=Sum(F("cost_price") * F("quantity")))["total_cogs"]
             or 0
         )
 
@@ -639,27 +649,43 @@ def profit_and_loss_view(request):
         profit_and_loss["Income"].append({"label": "Sales Revenue", "value": revenue})
 
         # Split Other Income into categories (if applicable)
-        other_income_categories = other_income_transactions.values('account__account_name', 'account__account_number').annotate(total_other_income=Sum('amount')).order_by('account__account_number')
+        other_income_categories = (
+            other_income_transactions.values(
+                "account__account_name", "account__account_number"
+            )
+            .annotate(total_other_income=Sum("amount"))
+            .order_by("account__account_number")
+        )
         for income_category in other_income_categories:
-            account_name = income_category['account__account_name']
-            account_number = income_category['account__account_number']
-            profit_and_loss["Income"].append({
-                "label": f"{account_number} - {account_name}",
-                "value": income_category['total_other_income']
-            })
+            account_name = income_category["account__account_name"]
+            account_number = income_category["account__account_number"]
+            profit_and_loss["Income"].append(
+                {
+                    "label": f"{account_number} - {account_name}",
+                    "value": income_category["total_other_income"],
+                }
+            )
 
-        profit_and_loss["Income"].append({"label": "Total Other Income", "value": other_income})
-        profit_and_loss["Income"].append({"label": "Total Income", "value": total_income})
+        profit_and_loss["Income"].append(
+            {"label": "Total Other Income", "value": other_income}
+        )
+        profit_and_loss["Income"].append(
+            {"label": "Total Income", "value": total_income}
+        )
 
         # Expenses Section (Dynamic categories from operating_expenses)
         for category, value in operating_expenses.items():
             profit_and_loss["Expenses"].append({"label": category, "value": value})
 
         # Add the total expenses
-        profit_and_loss["Expenses"].append({"label": "Total Expenses", "value": total_expenses})
+        profit_and_loss["Expenses"].append(
+            {"label": "Total Expenses", "value": total_expenses}
+        )
 
         # Add Cost of Goods Sold (COGS)
-        profit_and_loss["Expenses"].append({"label": "Cost of Goods Sold (COGS)", "value": cogs})
+        profit_and_loss["Expenses"].append(
+            {"label": "Cost of Goods Sold (COGS)", "value": cogs}
+        )
 
         # Summary Section
         profit_and_loss["Summary"][0]["value"] = gross_profit

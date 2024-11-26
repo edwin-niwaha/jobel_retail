@@ -7,7 +7,6 @@ urlpatterns = [
     path("add-account/", views.add_chart_of_account_view, name="add_chart_of_account"),
     path("accounts/", views.chart_of_accounts_list_view, name="chart_of_accounts_list"),
     path("import-accounts/", views.import_coa_data, name="import_coa_data"),
-
     path(
         "update/<str:account_id>/",
         views.chart_of_account_update_view,

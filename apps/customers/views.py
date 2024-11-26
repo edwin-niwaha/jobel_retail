@@ -8,7 +8,6 @@ from .forms import CustomerForm
 # Import custom decorators
 from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,
-    admin_or_manager_required,
     admin_required,
 )
 

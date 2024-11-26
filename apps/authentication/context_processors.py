@@ -3,8 +3,6 @@ from apps.products.models import Product
 from apps.orders.models import Order
 from django.db.models import F
 
-from django.contrib.auth.decorators import login_required
-
 
 def guest_profiles_context(request):
     # Fetch all profiles with the role "guest"

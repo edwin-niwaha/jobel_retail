@@ -6,7 +6,6 @@ from .models import Supplier
 from .forms import SupplierForm
 from apps.authentication.decorators import (
     admin_or_manager_or_staff_required,
-    admin_or_manager_required,
     admin_required,
 )
 

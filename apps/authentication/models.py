@@ -50,7 +50,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=15, choices=ROLE_CHOICES, default="guest")
-    avatar = CloudinaryField('avatar', default="default.jpg")
+    avatar = CloudinaryField("avatar", default="default.jpg")
     bio = models.TextField()
 
     def __str__(self):
@@ -72,7 +72,7 @@ class Profile(models.Model):
 
                     # Re-upload resized image to Cloudinary
                     upload_result = upload(output, folder="profile_images")
-                    self.avatar = upload_result['public_id']
+                    self.avatar = upload_result["public_id"]
 
         elif isinstance(self.avatar, InMemoryUploadedFile):
             # If a new file is being uploaded
@@ -87,9 +87,10 @@ class Profile(models.Model):
 
                 # Upload resized image to Cloudinary
                 upload_result = upload(output, folder="profile_images")
-                self.avatar = upload_result['public_id']
+                self.avatar = upload_result["public_id"]
 
         super().save(*args, **kwargs)
+
 
 # =================================== Contact Model  ===================================
 class Contact(models.Model):

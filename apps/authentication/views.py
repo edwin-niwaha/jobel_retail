@@ -7,7 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db import transaction
-from django.contrib.auth.models import User
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseRedirect,
@@ -38,6 +37,7 @@ import logging
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
 
 # =================================== Register User  ===================================
 class RegisterView(View):
@@ -224,58 +224,25 @@ def delete_profile(request, pk):
 
 # ===================================  Contact Us  ===================================
 @transaction.atomic
-# def contact_us(request):
-#     if request.method == "POST":
-#         form = ContactForm(request.POST)
-#         if form.is_valid():
-#             instance = form.save()
-
-#             try:
-#                 # Send email to the user
-#                 subject = "Your message has been received"
-#                 message = f"Hello {instance.name},\n\nYour message has been received. \
-# We will get back to you soon!\n\nThanks,\nJobel - Jobel_retail RETAIL MANAGER\nManagement"
-#                 from_email = (
-#                     settings.EMAIL_HOST_USER
-#                 )  # Use default from email from settings
-#                 to = [instance.email]  # Access email entered in the form
-#                 send_mail(subject, message, from_email, to)
-
-#                 # Set success message
-#                 messages.success(
-#                     request,
-#                     "Your message has been sent successfully. \
-# We will get back to you soon!",
-#                     extra_tags="bg-success",
-#                 )
-#             except Exception as e:
-#                 # Handle exceptions such as email address not found or internet being off
-#                 print("An error occurred while sending email:", str(e))
-#                 messages.error(
-#                     request,
-#                     "Sorry, an error occurred while sending your \
-# message. Please try again later.",
-#                     extra_tags="bg-danger",
-#                 )
-
-#             # Redirect to the contact page
-#             return HttpResponseRedirect(reverse("contact_us"))
-#     else:
-#         form = ContactForm()
-
-#     return render(request, "accounts/contact_us.html", {"form": form})
-
 def send_contact_email(name, email):
     """
     Helper function to send email after contact form submission.
     """
-    subject = "Your message has been received"
+    subject = "We've Received Your Message"
+
     message = (
-        f"Hello {name},\n\n"
-        "Your message has been received. We will get back to you soon!\n\n"
-        "Thanks,\nJobel_Inc\nManagement"
+        f"Hi {name},\n\n"
+        "Thank you for reaching out to us! 🌟\n\n"
+        "Your message has been received, and our team is already on it. "
+        "Expect a response soon as we work to assist you promptly.\n\n"
+        "In the meantime, feel free to browse our available products here:\n"
+        "👉 [View Products](https://jobellstore.up.railway.app/)\n\n"
+        "If you have additional questions or concerns, let us know—we're here to help!\n\n"
+        "Warm regards,\n"
+        "The Jobel Inc. Team\n"
+        "Management"
     )
-    from_email = getattr(settings, 'EMAIL_HOST_USER', None)
+    from_email = getattr(settings, "EMAIL_HOST_USER", None)
     to = [email]
 
     try:
@@ -285,10 +252,9 @@ def send_contact_email(name, email):
         logger.error(f"Error sending email to {email}: {str(e)}")
         return False
 
+
 def contact_us(request):
-    """
-    Handles the contact us form submissions and sends a confirmation email.
-    """
+
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -316,6 +282,7 @@ def contact_us(request):
         form = ContactForm()
 
     return render(request, "accounts/contact_us.html", {"form": form})
+
 
 # =================================== Display User Feedback ===================================
 @login_required

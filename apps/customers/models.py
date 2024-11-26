@@ -52,6 +52,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 #     def to_select2(self):
 #         return {"label": self.get_full_name(), "value": self.id}
 
+
 class Customer(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
@@ -61,10 +62,16 @@ class Customer(models.Model):
         max_length=50, blank=True, null=True, verbose_name="Last Name"
     )
     address = models.TextField(
-        max_length=255, blank=True, null=True, verbose_name="Address"  # Increased address length
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Address",  # Increased address length
     )
     email = models.EmailField(
-        max_length=100, blank=True, null=True, verbose_name="Email"  # Increased email length
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Email",  # Increased email length
     )
     phone = PhoneNumberField(
         null=True,

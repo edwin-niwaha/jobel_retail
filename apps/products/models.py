@@ -137,7 +137,7 @@ class ProductVolume(models.Model):
     #     blank=True,
     # )
     image = CloudinaryField(
-        'product_volume_image',
+        "product_volume_image",
         validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png"])],
         null=True,
         blank=True,
@@ -157,7 +157,7 @@ class ProductImage(models.Model):
         Product, related_name="images", on_delete=models.CASCADE
     )
     # image = models.ImageField(upload_to="product_images/", verbose_name="Product Image")
-    image = CloudinaryField('image', blank=True, null=True) 
+    image = CloudinaryField("image", blank=True, null=True)
     is_default = models.BooleanField(default=False, verbose_name="Is Default")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created at")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")

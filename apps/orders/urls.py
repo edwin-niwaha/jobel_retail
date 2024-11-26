@@ -32,10 +32,12 @@ urlpatterns = [
         name="orders_to_be_processed",
     ),
     path("delete/<int:order_id>/", views.order_delete_view, name="delete_order"),
-
     path("report/<int:order_id>/", views.order_report_view, name="order_report"),
     path("process/<int:order_id>/", views.order_process_view, name="order_process"),
-
-     path('confirm-payment/<int:order_id>/', views.confirm_payment_view, name='confirm_payment'),
-     path('payment/flutter/', views.payment_flutter_view, name='payment_flutter'),
+    path(
+        "confirm-payment/<int:order_id>/",
+        views.confirm_payment_view,
+        name="confirm_payment",
+    ),
+    path("payment/flutter/", views.payment_flutter_view, name="payment_flutter"),
 ]
