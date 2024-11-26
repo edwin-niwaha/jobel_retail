@@ -31,6 +31,8 @@ urlpatterns = [
         views.orders_to_be_processed_view,
         name="orders_to_be_processed",
     ),
+    path("delete/<int:order_id>/", views.order_delete_view, name="delete_order"),
+
     path("report/<int:order_id>/", views.order_report_view, name="order_report"),
     path("process/<int:order_id>/", views.order_process_view, name="order_process"),
 

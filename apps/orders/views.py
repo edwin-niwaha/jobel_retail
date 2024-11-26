@@ -122,105 +122,6 @@ def cart_view(request):
     return render(request, "orders/cart.html", context)
 
 # =================================== checkout_view ===================================
-# @login_required
-# def checkout_view(request):
-#     try:
-#         cart = Cart.objects.get(user=request.user)
-#     except Cart.DoesNotExist:
-#         messages.error(request, "Your cart is empty.")
-#         return redirect(
-#             "orders:cart_view"
-#         )  # Redirect to cart view if the cart is empty
-
-#     # Get or create a customer entry for the current user
-#     customer, created = Customer.objects.get_or_create(user=request.user)
-
-#     if request.method == "POST":
-#         form = CheckoutForm(request.POST)
-#         if form.is_valid():
-#             total_amount = cart.get_total_price()
-
-#             # Update the customer's information from the form
-#             customer.first_name = form.cleaned_data["first_name"]
-#             customer.last_name = form.cleaned_data["last_name"]
-#             customer.email = form.cleaned_data["email"]
-#             customer.phone = form.cleaned_data["phone"]
-#             customer.address = form.cleaned_data["address"]
-#             customer.save()  # Save the updated customer information
-
-#             # Create the order
-#             order = Order.objects.create(
-#                 customer=customer,
-#                 created_at=timezone.now(),
-#                 total_amount=total_amount,
-#                 status="Pending",  # Or set a default status
-#             )
-
-#             # Create OrderDetail entries for each item in the cart
-#             for item in cart.items.all():
-#                 # item.volume refers to the ProductVolume
-#                 OrderDetail.objects.create(
-#                     order=order,
-#                     product=item.product,
-#                     quantity=item.quantity,
-#                     price=item.volume.price,  # Use price from ProductVolume
-#                 )
-
-#             # Clear the cart items after checkout
-#             cart.items.all().delete()
-
-#             # Optionally, redirect to an order confirmation page
-#             messages.success(
-#                 request,
-#                 f"Your order has been placed successfully! Order ID: {order.id}",
-#             )
-#             return redirect("orders:order_confirmation", order_id=order.id)
-
-#     else:
-#         # Prepopulate the form with existing customer data if available
-#         form = CheckoutForm(
-#             initial={
-#                 "first_name": customer.first_name,
-#                 "last_name": customer.last_name,
-#                 "email": customer.email,
-#                 "phone": customer.phone,
-#                 "address": customer.address,
-#             }
-#         )
-
-#     return render(request, "orders/checkout.html", {"form": form, "cart": cart})
-
-# def send_order_email(recipient_name, recipient_email, order_id, is_customer=True):
-#     """
-#     Send email to customer or retail after order is placed.
-#     """
-#     subject = "Your Order has been Placed" if is_customer else "New Order Received"
-    
-#     if is_customer:
-#         message = (
-#             f"Hello {recipient_name},\n\n"
-#             f"Thank you for your purchase! Your order ID is {order_id}.\n\n"
-#             "You can view your order details and track the status in your account.\n\n"
-#             "Thanks for shopping with us!\nJobel_Inc\nManagement"
-#         )
-#     else:
-#         message = (
-#             f"Hello Jobell_Inc,\n\n"
-#             f"A new order has been placed. The Order ID is {order_id}.\n\n"
-#             "Please review and process the order.\n\n"
-#             "Thanks,\nJobel_Inc\nManagement"
-#         )
-
-#     from_email = getattr(settings, 'EMAIL_HOST_USER', None)  # This will be the sender's email
-#     to = [recipient_email]
-
-#     try:
-#         send_mail(subject, message, from_email, to)
-#         return True
-#     except Exception as e:
-#         logger.error(f"Error sending email to {recipient_email}: {str(e)}")
-#         return False
-    
 
 def send_order_email(recipient_name, recipient_email, order_id, is_customer=True):
     """
@@ -326,7 +227,7 @@ def checkout_view(request):
 
             # Send email to customer and retail (both using the same sender email)
             send_order_email(customer.first_name, customer.email, order.id, is_customer=True)
-            send_order_email('Jobell_Inc', settings.EMAIL_HOST_USER, order.id, is_customer=False)
+            send_order_email('Jobell Inc', settings.EMAIL_HOST_USER, order.id, is_customer=False)
 
             # Optionally, redirect to an order confirmation page
             messages.success(request, f"Your order has been placed successfully! Order ID: {order.id}")
@@ -603,3 +504,33 @@ def order_process_view(request, order_id):
         form = OrderStatusForm(instance=order)
 
     return render(request, "orders/order_process.html", {"order": order, "form": form})
+
+# =================================== Sale delete view ===================================
+@login_required
+@admin_required
+@transaction.atomic
+def order_delete_view(request, order_id):
+    try:
+        # Get the order to delete
+        order = Order.objects.get(id=order_id)
+        order.delete()
+        messages.success(
+            request, f"Order: {order_id} deleted successfully!", extra_tags="bg-success"
+        )
+    except Order.DoesNotExist:
+        # Specific exception for when the Order is not found
+        messages.error(
+            request,
+            f"Order: {order_id} not found!",
+            extra_tags="bg-danger",
+        )
+    except Exception as e:
+        # General exception for any other errors
+        messages.error(
+            request,
+            "There was an error during the elimination!",
+            extra_tags="bg-danger",
+        )
+        print(e)
+    finally:
+        return redirect("orders:orders_to_be_processed")

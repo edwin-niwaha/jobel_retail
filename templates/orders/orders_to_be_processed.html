@@ -63,6 +63,31 @@
                       <a href="{% url 'orders:order_report' order.id %}" class="btn btn-info btn-sm">View</a>
                       <a href="{% url 'orders:order_process' order.id %}" class="btn btn-success btn-sm ml-2" onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Process</a>
                     </td>
+                    <td class="text-center print-hide">
+                      {% if user.profile.role == 'administrator' or user.profile.role == 'manager' %}
+                        <!-- Delete button and modal -->
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ order.id }}" title="Delete Order"><i class="mdi mdi-delete-outline"></i></button>
+
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteModal{{ order.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ order.id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel{{ order.id }}">Delete Order</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                              </div>
+                              <div class="modal-body">
+                                Are you sure you want to delete the order: <strong>{{ order.id }}</strong>?
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <a href="{% url 'orders:delete_order' order.id %}" class="text-decoration-none"><button type="button" class="btn btn-danger">Delete</button></a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    </td>
                   </tr>
                 {% endfor %}
               </tbody>
