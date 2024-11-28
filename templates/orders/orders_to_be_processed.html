@@ -27,7 +27,7 @@
             <table class="table table-bordered table-hover">
               <thead class="table-dark">
                 <tr>
-                  <th>Order ID</th>
+                  <th>ID</th>
                   <th>Customer</th>
                   <th>Order Date</th>
                   <th>Status</th>
@@ -63,7 +63,7 @@
                       <a href="{% url 'orders:order_report' order.id %}" class="btn btn-info btn-sm">View</a>
                       <a href="{% url 'orders:order_process' order.id %}" class="btn btn-success btn-sm ml-2" onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Process</a>
                     </td>
-                    <td class="text-center print-hide">
+                    <td class="print-hide">
                       {% if user.profile.role == 'administrator' or user.profile.role == 'manager' %}
                         <!-- Delete button and modal -->
                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ order.id }}" title="Delete Order"><i class="mdi mdi-delete-outline"></i></button>

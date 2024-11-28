@@ -14,7 +14,7 @@
             <table class="table table-striped table-hover table-bordered align-middle">
               <thead class="bg-secondary text-white">
                 <tr>
-                  <th>ID</th>
+                  <th>Order Id</th>
                   <th>Date</th>
                   <th>Order Status</th>
                   <th>Pay Status</th>
@@ -66,9 +66,9 @@
                                 '{{ order.customer.get_full_name|escapejs }}'
                               )">Pay Now</button>
                     </td> {% endcomment %}
-                    <td>
+                    {% comment %} <td>
                       <a href="{% url 'orders:payment_flutter' %}" class="btn btn-success btn-sm">Pay Now</a>
-                    </td>
+                    </td> {% endcomment %}
                     <td class="text-center">
                       <a href="{% url 'orders:order_detail_view' order.id %}" class="btn btn-info btn-sm">View Details</a>
                     </td>

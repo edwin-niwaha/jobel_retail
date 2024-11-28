@@ -38,7 +38,7 @@
         <div class="text-center py-4">
           <!-- Company Details -->
           <div class="mb-3">
-            <h3 class="m-0 font-weight-bold text-primary">{{ company_name|default:'JOEBLL_INC.' }}</h3>
+            <h3 class="m-0 font-weight-bold text-primary">{{ company_name|default:'JOBELL INC' }}</h3>
             <p class="m-0 text-muted">{{ company_address|default:'Business City, BC 12345' }}</p>
             <p class="m-0 text-muted">{{ company_phone|default:'Phone: (+256) 754-969584' }} | {{ company_email|default:'Email: info@jobell.com' }}</p>
           </div>
@@ -48,8 +48,9 @@
           <!-- Date Range Display -->
           <p class="m-0 text-muted">
             <strong>For the Period:</strong>
-            {{ start_date|date:'d/m/Y' }} to {{ end_date|date:'d/m/Y' }}
+            {{ start_date|date:'d/m/Y' }} <strong>to</strong> {{ end_date|date:'d/m/Y' }}
           </p>
+          <hr class="bg-info" style="height: 1px;" />
         </div>
       </div>
 

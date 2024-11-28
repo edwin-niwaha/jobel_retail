@@ -32,12 +32,11 @@
                 <table class="table table-bordered table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th>Order ID</th>
+                            <th>ID</th>
                             <th>Customer</th>
                             <th>Date</th>
                             <th>Total Amount</th>
                             <th>Status</th>
-                            <th>Pay Method</th>
                             <th class="print-hide">Action</th>
                         </tr>
                     </thead>
@@ -47,7 +46,7 @@
                             <td>{{ order.id }}</td>
                             <td>{{ order.customer.get_full_name }}</td>
                             <td>{{ order.created_at|date:"d M Y, H:i A" }}</td>
-                            <td>{{ order.total_amount|floatformat:"2"|intcomma }}</td>
+                            <td class="text-right">{{ order.total_amount|floatformat:"2"|intcomma }}</td>
                             <td>
                                 {% if order.status == 'Pending' %}
                                   <span class="badge bg-warning">Pending</span>
@@ -65,7 +64,6 @@
                                   <span class="badge bg-light text-dark">Unknown</span>
                                 {% endif %}
                               </td>
-                            <td>{{ order.payment_method }}</td>
                             <td class="print-hide">
                                 <a href="{% url 'orders:order_report' order.id %}" class="btn btn-sm btn-primary">
                                     View Details
