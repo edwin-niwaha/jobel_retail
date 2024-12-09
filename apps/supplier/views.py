@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from .models import Supplier
@@ -14,8 +15,37 @@ from apps.authentication.decorators import (
 @login_required
 @admin_or_manager_or_staff_required
 def supplier_list(request):
-    suppliers = Supplier.objects.all()
-    return render(request, "supplier/suppliers.html", {"suppliers": suppliers})
+    search_query = request.GET.get("search", "")  # Get search query from GET parameters
+
+    # If a search query exists, filter the suppliers by name or contact_name
+    if search_query:
+        suppliers = Supplier.objects.filter(
+            name__icontains=search_query
+        ) | Supplier.objects.filter(contact_name__icontains=search_query)
+    else:
+        suppliers = Supplier.objects.all()  # No search query, return all suppliers
+
+    # Paginate the filtered list of suppliers
+    paginator = Paginator(suppliers, 25)
+    page_number = request.GET.get(
+        "page"
+    )  # Get the page number from the URL query parameter
+    page_obj = paginator.get_page(
+        page_number
+    )  # Get the page object for the current page
+
+    # Set a table title for the template context
+    table_title = "Suppliers List"
+
+    return render(
+        request,
+        "supplier/suppliers.html",
+        {
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "table_title": table_title,  # Add table title to context
+        },
+    )
 
 
 # =================================== supplier add view ===================================

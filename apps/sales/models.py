@@ -1,7 +1,8 @@
 from django.db import models
+from decimal import Decimal
 import django.utils.timezone
 from apps.customers.models import Customer
-from apps.products.models import Product
+from apps.products.models import Product, ProductVolume
 from apps.orders.models import Order
 
 
@@ -66,14 +67,33 @@ class Sale(models.Model):
         details = SaleDetail.objects.filter(sale=self.id)
         return sum([d.quantity for d in details])
 
+    def total_profit(self):
+        """Calculate total profit for the sale."""
+        profit = 0
+        for item in self.items.all():
+            for volume in item.product.volumes.all():
+                profit += (volume.price - volume.cost) * item.quantity
+        return profit
+
+    def total_items(self):
+        """Calculate total number of items sold in the sale."""
+        return sum([item.quantity for item in self.items.all()])
+
+    def total_revenue(self):
+        """Return the total revenue for the sale."""
+        return self.grand_total
+
 
 # =================================== SaleDetail model ===================================
 class SaleDetail(models.Model):
     sale = models.ForeignKey(Sale, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_volume = models.ForeignKey(
+        ProductVolume, null=True, blank=True, on_delete=models.CASCADE
+    )  # New field to track product volume
     price = models.FloatField()
     quantity = models.IntegerField()
-    total_detail = models.FloatField()
+    total_detail = models.FloatField()  # Total for the sale detail (price * quantity)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created at")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")
 
@@ -81,11 +101,20 @@ class SaleDetail(models.Model):
         db_table = "SaleDetails"
 
     def __str__(self) -> str:
-        return (
-            "Detail ID: "
-            + str(self.id)
-            + " Sale ID: "
-            + str(self.sale.id)
-            + " Quantity: "
-            + str(self.quantity)
-        )
+        return f"Detail ID: {self.id} | Sale ID: {self.sale.id} | Quantity: {self.quantity} | Product: {self.product.name}"
+
+    def total_item_profit(self):
+        """Calculate profit for a single item."""
+        if self.product_volume:
+            return (
+                self.product_volume.price - self.product_volume.cost
+            ) * self.quantity
+        return 0
+
+    def total_item_value(self):
+        """Calculate total value (price * quantity)."""
+        return self.price * self.quantity
+
+    def volume_ml(self):
+        """Return the volume in ml if available."""
+        return self.product_volume.volume.ml if self.product_volume else None

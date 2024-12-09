@@ -1,8 +1,8 @@
+# Importing Required Libraries
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
-
 
 # Load environment variables from .env file
 load_dotenv()
@@ -10,21 +10,24 @@ load_dotenv()
 # Base directory setup
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+############################### SECURITY SETTINGS ###############################
+
 # Security settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
 
-# DEBUG = os.environ.get("DEBUG", False)
-# Production
+# Update to False in Production
 DEBUG = False
-
-# Development
-# DEBUG = True
-
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "jobellstore.up.railway.app"]
-
 CSRF_TRUSTED_ORIGINS = ["https://jobellstore.up.railway.app"]
 
-# Application definition
+############################### CORS CONFIGURATION ###############################
+
+# CORS configuration
+CORS_ALLOWED_ORIGINS = ["https://jobellstore.up.railway.app"]
+
+############################### APPLICATION DEFINITION ###############################
+
+# Installed apps
 INSTALLED_APPS = [
     # Django core apps
     "django.contrib.admin",
@@ -54,7 +57,10 @@ INSTALLED_APPS = [
     "apps.orders",
     "apps.sales",
     "apps.finance",
+    "apps.blog",
 ]
+
+############################### MIDDLEWARE CONFIGURATION ###############################
 
 # Middleware configuration
 MIDDLEWARE = [
@@ -70,11 +76,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",  # Handles social auth exceptions
 ]
 
-# CORS allowed origins
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+############################### URL AND TEMPLATE CONFIGURATION ###############################
 
 # URL routing
 ROOT_URLCONF = "core.urls"
@@ -108,7 +110,12 @@ TEMPLATES = [
 # WSGI configuration
 WSGI_APPLICATION = "core.wsgi.application"
 
-#  # Uncomment for local Database configuration (PostgreSQL)
+# =================================== DATABASE CONFIGURATIONS ===================================
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+
+
+############################### LOCAL DATABASE CONFIGURATION ###############################
+
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",
@@ -121,26 +128,16 @@ WSGI_APPLICATION = "core.wsgi.application"
 # }
 
 
-# Database configuration (PostgreSQL) Online
+############################### ONLINE DATABASE CONFIGURATION ###############################
+
+# Database configuration (PostgreSQL)
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL", None)  # Use DATABASE_URL if provided
     )
 }
 
-# Fallback to manual configuration if DATABASE_URL is not set
-if not DATABASES["default"]:
-    DATABASES["default"] = {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "default_db_name"),
-        "USER": os.getenv("DB_USER", "default_user"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "default_password"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-    }
-
-
-# Static and media files configuration
+############################### STATIC AND MEDIA FILES CONFIGURATION ###############################
 
 # Local media storage
 MEDIA_ROOT = BASE_DIR / "media"
@@ -167,10 +164,7 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 # Cloudinary media URL online
 MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/"
 
-# Switch between local
-# Uncomment for local storage:
-# MEDIA_URL = LOCAL_MEDIA_URL
-
+############################### REST FRAMEWORK AND JWT CONFIGURATION ###############################
 
 # Django REST framework configuration
 REST_FRAMEWORK = {
@@ -186,8 +180,20 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+############################### EMAIL CONFIGURATION ###############################
+
 # Email backend (console for development)
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Email configuration (for production)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
+
+############################### DJOSER CONFIGURATION ###############################
 
 # Djoser configuration
 DJOSER = {
@@ -197,9 +203,13 @@ DJOSER = {
     "SERIALIZERS": {},
 }
 
+############################### GENERAL SITE SETTINGS ###############################
+
 # General site settings
-SITE_NAME = "Test Django Next.js"
-DOMAIN = "localhost:3000"
+SITE_NAME = "Jobell Inc Retail"
+DOMAIN = "https://jobellstore.up.railway.app"
+
+############################### PASSWORD VALIDATION ###############################
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -211,12 +221,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+############################### AUTHENTICATION BACKENDS ###############################
+
 # Authentication backends
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.github.GithubOAuth2",
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",  # Default backend
 )
+
+############################### LOCALIZATION AND TIMEZONE ###############################
 
 # Localization and time zone settings
 LANGUAGE_CODE = "en-us"
@@ -225,6 +239,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+############################### LOGIN AND SESSION SETTINGS ###############################
 
 # Login and session settings
 LOGIN_REDIRECT_URL = "/"
@@ -233,33 +248,15 @@ LOGIN_URL = "login"
 SESSION_COOKIE_AGE = 3600  # 60 * 60 seconds = 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Close session when browser closes
 
+############################### SOCIAL AUTHENTICATION SETTINGS ###############################
+
 # Social authentication keys (from environment variables)
 SOCIAL_AUTH_GITHUB_KEY = os.getenv("GITHUB_KEY")
 SOCIAL_AUTH_GITHUB_SECRET = os.getenv("GITHUB_SECRET")
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_SECRET")
 
-# Load your MTN credentials from the .env file
-MTN_CLIENT_ID = os.getenv("MTN_CLIENT_ID")
-MTN_CLIENT_SECRET = os.getenv("MTN_CLIENT_SECRET")
-MTN_SUBSCRIPTION_KEY = os.getenv("MTN_SUBSCRIPTION_KEY")
-
-
-# Email configuration (for production)
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.getenv("EMAIL_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
-
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Django Crispy Forms configuration
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+############################### LOGGING CONFIGURATION ###############################
 
 # Logging configuration
 LOGS_DIR = BASE_DIR / "logs"
@@ -287,3 +284,14 @@ LOGGING = {
         },
     },
 }
+
+############################### DEFAULT PRIMARY KEY FIELD TYPE ###############################
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+############################### DJANGO CRISPY FORMS CONFIGURATION ###############################
+
+# Django Crispy Forms configuration
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

@@ -1,6 +1,7 @@
 from django.contrib import messages
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import IntegrityError
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -27,15 +28,30 @@ from apps.authentication.decorators import (
 )
 
 
-# =================================== categories view ===================================
 @login_required
 @admin_or_manager_or_staff_required
 def categories_list_view(request):
+    search_query = request.GET.get(
+        "search", ""
+    )  # Get the search query from the request
+    categories = Category.objects.all()
+
+    # Filter categories based on the search query
+    if search_query:
+        categories = categories.filter(name__icontains=search_query)
+
+    # Paginate the filtered categories
+    paginator = Paginator(categories, 10)  # Show 10 categories per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = {
         "active_icon": "products_categories",
-        "categories": Category.objects.all(),
+        "categories": page_obj,
+        "page_obj": page_obj,
+        "search_query": search_query,
     }
-    return render(request, "products/categories.html", context=context)
+    return render(request, "products/categories.html", context)
 
 
 # =================================== categories add view ===================================
@@ -163,9 +179,30 @@ def categories_delete_view(request, category_id):
 
 
 # # =================================== volumes(ML) List view ===================================
+@login_required
+@admin_or_manager_or_staff_required
 def volume_list(request):
+    search_query = request.GET.get(
+        "search", ""
+    )  # Get the search query from the request
     volumes = Volume.objects.all()
-    return render(request, "products/volume_ml_list.html", {"volumes": volumes})
+
+    # Filter categories based on the search query
+    if search_query:
+        volumes = volumes.filter(ml__icontains=search_query)
+
+    # Paginate the filtered categories
+    paginator = Paginator(volumes, 25)  # Show 10 categories per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "table_title": "Volumes",
+        "volumes": page_obj,
+        "page_obj": page_obj,
+        "search_query": search_query,
+    }
+    return render(request, "products/volume_ml_list.html", context)
 
 
 # # =================================== volumes(ML) add view ===================================
@@ -214,7 +251,22 @@ def volume_update_view(request, volume_id):
 @admin_or_manager_or_staff_required
 def product_volume_list_view(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+
+    # Search functionality
+    query = request.GET.get("q", "")
     product_volumes = ProductVolume.objects.filter(product=product)
+    if query:
+        product_volumes = product_volumes.filter(
+            Q(product_type__icontains=query)
+            | Q(volume__ml__icontains=query)
+            | Q(cost__icontains=query)
+            | Q(price__icontains=query)
+        )
+
+    # Pagination
+    paginator = Paginator(product_volumes, 10)  # 10 items per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     # Calculate totals
     total_ml = sum(volume.volume.ml for volume in product_volumes)
@@ -223,12 +275,14 @@ def product_volume_list_view(request, product_id):
 
     context = {
         "product": product,
-        "product_volumes": product_volumes,
+        "product_volumes": page_obj,
         "total_ml": total_ml,
         "total_cost": total_cost,
         "total_price": total_price,
+        "query": query,
+        "paginator": paginator,
+        "page_obj": page_obj,
     }
-
     return render(request, "products/volumes.html", context)
 
 
@@ -341,15 +395,31 @@ def products_list_all(request):
 
 
 # =================================== produts list view ===================================
-
-
 @login_required
 @admin_or_manager_or_staff_required
 def products_list_view(request):
-    # Fetch all products with related volumes and inventory
-    products = Product.objects.prefetch_related("productvolume_set", "inventory").all()
+    search_query = request.GET.get("search", "")
+    page = request.GET.get("page", 1)
 
-    # Calculate total price and total cost using inventory quantity
+    # Filter products based on the search query
+    products = Product.objects.prefetch_related(
+        "productvolume_set", "inventory"
+    ).filter(
+        Q(name__icontains=search_query)
+        | Q(category__name__icontains=search_query)
+        | Q(supplier__name__icontains=search_query)
+    )
+
+    # Pagination
+    paginator = Paginator(products, 25)
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
+
+    # Calculate totals
     total_price = (
         ProductVolume.objects.filter(product__inventory__isnull=False).aggregate(
             total_price=Sum(F("price") * F("product__inventory__quantity"))
@@ -364,7 +434,6 @@ def products_list_view(request):
         or 0
     )
 
-    # Calculate total stock from the Inventory model
     total_stock = (
         Product.objects.aggregate(total_stock=Sum("inventory__quantity"))["total_stock"]
         or 0
@@ -375,7 +444,8 @@ def products_list_view(request):
         "total_price": total_price,
         "total_cost": total_cost,
         "total_stock": total_stock,
-        "table_title": "Products",
+        "table_title": "Products List",
+        "search_query": search_query,
     }
 
     return render(request, "products/products.html", context=context)

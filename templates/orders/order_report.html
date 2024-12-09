@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 {% load static %} {% load humanize %} {% block content %}
-  <div class="container my-5">
+  <div class="container-fluid my-3">
     <div class="card shadow-lg border-0">
       <div class="card-header bg-primary text-white">
         <h2 class="mb-0 text-center">Order Details - #{{ order.id }}</h2>
@@ -38,7 +38,7 @@
               <p>
                 <strong>Total Amount:</strong> {{ order.total_amount|floatformat:'2'|intcomma }}
               </p>
-              <p>
+              {% comment %} <p>
                 <strong>Payment Method:</strong> {{ order.payment_method|default:'N/A' }}
               </p>
               <p>
@@ -48,7 +48,7 @@
                 {% else %}
                   <span class="badge bg-danger">Unpaid</span>
                 {% endif %}
-              </p>
+              </p> {% endcomment %}
             </div>
           </div>
 

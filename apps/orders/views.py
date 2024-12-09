@@ -1,6 +1,8 @@
 from django.core.mail import EmailMultiAlternatives
+from django.core.mail import send_mail
 from django.utils.html import strip_tags
-
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.conf import settings
 from django.contrib import messages
 import requests
@@ -121,12 +123,8 @@ def cart_view(request):
 
 
 # =================================== checkout_view ===================================
-
-
 def send_order_email(recipient_name, recipient_email, order_id, is_customer=True):
-    """
-    Send stylish email to customer or retail after order is placed, including respective links.
-    """
+
     customer_order_history_url = (
         "https://jobellstore.up.railway.app/api/orders/order-history/"
     )
@@ -429,16 +427,30 @@ def order_confirmation_view(request, order_id):
 @login_required
 @admin_or_manager_or_staff_required
 def orders_to_be_processed_view(request):
+    search_query = request.GET.get("search", "")
     orders = Order.objects.filter(status__in=["Pending", "Shipped"]).order_by(
         "created_at"
     )
+
+    # Apply search filter if search query is provided
+    if search_query:
+        orders = orders.filter(
+            Q(customer__first_name__icontains=search_query)
+            | Q(customer__last_name__icontains=search_query)
+            | Q(id__icontains=search_query)
+        )
+
+    # Pagination
+    paginator = Paginator(orders, 25)  # Show 25 orders per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     table_title = "Orders to be Processed"
 
     return render(
         request,
         "orders/orders_to_be_processed.html",
-        {"orders": orders, "table_title": table_title},
+        {"orders": page_obj, "table_title": table_title, "search_query": search_query},
     )
 
 
@@ -463,19 +475,56 @@ def customer_order_history_view(request):
 
 
 # =================================== all_orders_view ===================================
+# @login_required
+# @admin_or_manager_or_staff_required
+# def all_orders_view(request):
+#     status_filter = request.GET.get("status", "")
+#     if status_filter == "All" or status_filter == "":
+#         orders = Order.objects.all().order_by("-created_at")
+#     else:
+#         orders = Order.objects.filter(status=status_filter)
+
+#     context = {
+#         "orders": orders,
+#         "status_filter": status_filter,
+#     }
+#     return render(request, "orders/all_orders.html", context)
+
+
 @login_required
 @admin_or_manager_or_staff_required
 def all_orders_view(request):
+    # Get the status filter from the GET request
     status_filter = request.GET.get("status", "")
+
+    # Get the search term from the GET request
+    search_query = request.GET.get("search", "")
+
+    # Filter orders based on status and search term
     if status_filter == "All" or status_filter == "":
-        orders = Order.objects.all().order_by("-created_at")
+        orders = Order.objects.all()
     else:
         orders = Order.objects.filter(status=status_filter)
 
+    if search_query:
+        orders = orders.filter(
+            Q(customer__first_name__icontains=search_query)
+            | Q(customer__last_name__icontains=search_query)
+            | Q(id__icontains=search_query)
+        )
+
+    # Paginate orders (25 orders per page)
+    paginator = Paginator(orders, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Context with paginated orders and filters
     context = {
-        "orders": orders,
+        "orders": page_obj,
         "status_filter": status_filter,
+        "search_query": search_query,
     }
+
     return render(request, "orders/all_orders.html", context)
 
 
@@ -517,16 +566,30 @@ def order_detail_view(request, order_id):
 # =================================== order_process_view ===================================
 @login_required
 @admin_or_manager_or_staff_required
+@login_required
+@admin_or_manager_or_staff_required
 def order_process_view(request, order_id):
     order = get_object_or_404(Order.objects.prefetch_related("details"), id=order_id)
 
     if request.method == "POST":
         form = OrderStatusForm(request.POST, instance=order)
         if form.is_valid():
+            order_status = form.cleaned_data[
+                "status"
+            ]  # Assuming 'status' is the field in the form
             form.save()
             messages.success(
                 request, "Order status updated successfully!", extra_tags="bg-success"
             )
+
+            # Send email to the customer
+            if order.customer:  # Assuming `order.customer` is the customer's email
+                send_order_status_email(
+                    recipient_name=order.customer.first_name,
+                    recipient_email=order.customer.email,
+                    order_status=order_status,
+                )
+
             return redirect("orders:orders_to_be_processed")
         else:
             # Extract error messages
@@ -544,6 +607,52 @@ def order_process_view(request, order_id):
         form = OrderStatusForm(instance=order)
 
     return render(request, "orders/order_process.html", {"order": order, "form": form})
+
+
+# Send email to customer when the order changes
+def send_order_status_email(recipient_name, recipient_email, order_status):
+
+    # Send a stylish email to the customer when their order status is updated.
+    subject = f"Your Order Status Has Been Updated: {order_status}"
+
+    # Link to the order history
+    order_history_url = "https://jobellstore.up.railway.app/api/orders/order-history/"
+
+    # Stylish HTML email body
+    email_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #333;">
+        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <h2 style="color: #2E86C1; text-align: center;">Your Order Status Has Been Updated</h2>
+            <p>Hi <strong>{recipient_name}</strong>,</p>
+            <p>We wanted to let you know that the status of your order has been updated. Your current order status is: <strong>{order_status}</strong>.</p>
+            <p>We are committed to keeping you informed throughout the process. If you have any questions or need further assistance regarding your order, please don't hesitate to reach out to us.</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="{order_history_url}" style="background-color: #2E86C1; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px;">View Order History</a>
+            </div>
+
+            <p>In the meantime, feel free to explore our latest products:</p>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="https://jobellstore.up.railway.app/" style="background-color: #C0392B; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px;">View Products</a>
+            </div>
+
+            <p>Thank you for choosing us, and we look forward to serving you again soon!</p>
+            <p style="color: #888;">Warm regards,<br>The Jobel Inc. Team<br>Customer Support</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    from_email = getattr(settings, "EMAIL_HOST_USER", None)
+    recipient_list = [recipient_email]
+
+    # Send the HTML email
+    try:
+        send_mail(subject, "", from_email, recipient_list, html_message=email_body)
+        logger.info(f"Email sent to {recipient_email}")
+    except Exception as e:
+        logger.error(f"Error sending email to {recipient_email}: {str(e)}")
 
 
 # =================================== Sale delete view ===================================

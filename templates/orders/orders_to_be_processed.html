@@ -16,6 +16,14 @@
       </div>
     </div>
 
+    <!-- Search Form -->
+    <form method="get" action="{% url 'orders:orders_to_be_processed' %}" class="mb-3">
+      <div class="input-group">
+        <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search orders" />
+        <button class="btn btn-primary" type="submit"><i class="mdi mdi-search"></i> Search</button>
+      </div>
+    </form>
+
     <!-- DataTable -->
     <div id="printMe" class="card shadow mb-4">
       <div class="card-header py-3">
@@ -92,6 +100,21 @@
                 {% endfor %}
               </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between">
+              <div>
+                {% if orders.has_previous %}
+                  <a href="?page=1&search={{ search_query }}" class="btn btn-link">First</a>
+                  <a href="?page={{ orders.previous_page_number }}&search={{ search_query }}" class="btn btn-link">Previous</a>
+                {% endif %}
+                <span>Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+                {% if orders.has_next %}
+                  <a href="?page={{ orders.next_page_number }}&search={{ search_query }}" class="btn btn-link">Next</a>
+                  <a href="?page={{ orders.paginator.num_pages }}&search={{ search_query }}" class="btn btn-link">Last</a>
+                {% endif %}
+              </div>
+            </div>
           {% else %}
             <p class="text-muted">No orders to be processed at the moment.</p>
           {% endif %}

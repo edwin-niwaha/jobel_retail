@@ -2,58 +2,88 @@
 {% load static %}
 
 {% block content %}
-<div class="container-fluid">
+  <div class="container-fluid">
     <div class="row mb-3">
-        <div class="col-md-12 d-flex justify-content-between align-items-center">
-            <a href="{% url 'products:volume_add' %}" class="btn btn-dark ml-2">
-                <i class="mdi mdi-plus mr-2"></i>
-                Add Volume (ML)
-            </a>
-            <div class="d-flex">
-                <button title="Print" type="button" class="btn btn-success ml-2" onclick="printDiv('printMe')">
-                    <i class="mdi mdi-printer btn-icon-prepend"></i>
-                </button>
-            </div>
+      <div class="col-md-12 d-flex justify-content-between align-items-center">
+        <a href="{% url 'products:volume_add' %}" class="btn btn-dark ml-2">
+          <i class="mdi mdi-plus mr-2"></i>
+          Add Volume (ML)
+        </a>
+        <div class="d-flex">
+          <button title="Print" type="button" class="btn btn-success ml-2" onclick="printDiv('printMe')"><i class="mdi mdi-printer btn-icon-prepend"></i></button>
         </div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-12">
+        <form method="get" action="{% url 'products:volume_list' %}">
+          <div class="input-group">
+            <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Search by volume" />
+            <button class="btn btn-primary" type="submit"><i class="mdi mdi-magnify"></i> Search</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- DataTable -->
     <div id="printMe" class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h3>{{ table_title|upper }}</h3>
+      <div class="card-header py-3">
+        <h3>{{ table_title|upper }}</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="my-table" id="dataTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Volume(ML)</th>
+                <th class="print-hide" colspan="2" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for volume in volumes %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ volume.ml }}</td>
+                  <td class="text-center print-hide">
+                    <!-- Update button -->
+                    <a href="{% url 'products:volume_update' volume.id %}" class="text-decoration-none" onclick="return confirm('Are you sure you want to update this record?');"><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Update Volume"><i class="bi bi-pencil"></i></button></a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="my-table" id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Volume(ML)</th>
-                            <th class="print-hide" colspan="2" class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for volume in volumes %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ volume.ml }}</td>
-                            <td class="text-center print-hide">
-                                <!-- Update button -->
-                                <a href="{% url 'products:volume_update' volume.id %}" class="text-decoration-none"
-                                    onclick="return confirm('Are you sure you want to update this record?');">
-                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
-                                        title="Update Volume">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-            </div>
+        <!-- Pagination controls -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <nav>
+            <ul class="pagination">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+              {% endif %}
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                  </li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
         </div>
+      </div>
     </div>
-</div>
-{% endblock content %}
+  </div>
+{% endblock %}

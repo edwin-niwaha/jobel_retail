@@ -193,7 +193,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active" href="/balance-sheet" target="_self">
+              <a class="nav-link active" href="{% url 'finance:balance_sheet' %}" target="_self">
                 <i class="mdi mdi-file-chart menu-icon"></i>
                 Balance Sheet
               </a>
@@ -242,6 +242,37 @@
         </a>
       </li>
     {% endif %}
+
+    <!-- Blog Section -->
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#blogSubmenu" aria-expanded="false" aria-controls="blogSubmenu">
+        <i class="mdi mdi-book-open-page-variant menu-icon"></i>
+        <span class="menu-title">Blog</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="blogSubmenu">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link active" href="{% url 'blog:blog_list' %}" target="_self">
+              <i class="mdi mdi-format-list-bulleted menu-icon"></i>
+              Blog List
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="{% url 'blog:blog_create' %}" target="_self">
+              <i class="mdi mdi-pencil menu-icon"></i>
+              Add Blog
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="{% url 'blog:blog_category_add' %}" target="_self">
+              <i class="mdi mdi-tag-multiple menu-icon"></i>
+              Blog Categories
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
   </ul>
 </nav>
 <!-- end sidebar -->

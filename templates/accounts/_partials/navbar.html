@@ -34,7 +34,7 @@
           <a class="mt-2 navbar-brand mt-lg-0" href="/">
 
             <h5 style="font-family: 'Times New Roman', Times, serif">
-              JOBEL INC
+              JOBELL INC
             </h5>
           </a>
           <!-- Left links -->
@@ -44,6 +44,9 @@
             </li>
             <a class="nav-link" href="{% url 'about_us' %}">ABOUT US</a></li>
             <a class="nav-link" href="{% url 'contact_us' %}">CONTAC US</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'blog:blog_list' %}">BLOG</a>
+            </li>
             {% if user.is_authenticated %}
             {% if user.profile.role == 'guest' %}
             <li class="nav-item">

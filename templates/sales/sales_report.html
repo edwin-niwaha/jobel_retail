@@ -5,27 +5,21 @@
 
 {% block content %}
   <div class="container-fluid">
+    <!-- Header Section -->
     <div class="row mb-3">
       <div class="col-md-12 d-flex justify-content-between align-items-center">
-        <a href="{% url 'sales:sales_list' %}">
-          <button type="button" class="btn btn-info font-weight-bold">
-            <i class="mdi mdi-arrow-left-bold mr-2"></i>
-            Go back
-          </button>
-        </a>
+        <a href="{% url 'sales:sales_list' %}"><button type="button" class="btn btn-info font-weight-bold"><i class="mdi mdi-arrow-left-bold mr-2"></i> Go back</button></a>
         <h3 class="m-0 font-weight-bold text-primary">{{ table_title|upper }}</h3>
         <div class="d-flex">
-          <a href="{% url 'sales:sales_add' %}" class="btn btn-dark ml-2">
-            <i class="mdi mdi-plus mr-2"></i>
-            Create Sale
-          </a>
+          <a href="{% url 'sales:sales_add' %}" class="btn btn-dark ml-2"><i class="mdi mdi-plus mr-2"></i> Create Sale</a>
           <button title="Print" type="button" class="btn btn-success ml-2" onclick="printDiv('printMe')"><i class="mdi mdi-printer btn-icon-prepend"></i></button>
         </div>
       </div>
     </div>
     <hr class="bg-info" style="height: 1px;" />
+
+    <!-- Report Period Form -->
     <div class="text-center">
-      <!-- Report Period Form -->
       <form method="GET" action="{% url 'sales:sales_report' %}" class="mb-4">
         <div class="row">
           <div class="col-md-6">{{ form.start_date|as_crispy_field }}</div>
@@ -36,59 +30,65 @@
     </div>
     <hr class="bg-info" style="height: 1px;" />
 
-    <div>
-      <!-- Summary Cards -->
-      <div class="row text-center mb-4">
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-lg rounded-3 bg-primary text-white d-flex flex-column h-100">
-            <div class="card-body">
-              <i class="mdi mdi-cash-multiple mdi-36px mb-3"></i> <!-- Icon for Total Revenue -->
-              <h5 class="card-title">Total Revenue</h5>
-              <h3 class="card-text">UgX {{ total_revenue|floatformat:'2'|intcomma }}</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-lg rounded-3 bg-info text-white d-flex flex-column h-100">
-            <div class="card-body">
-              <i class="mdi mdi-cart-outline mdi-36px mb-3"></i> <!-- Icon for Items Sold -->
-              <h5 class="card-title">Items Sold</h5>
-              <h3 class="card-text">{{ total_items_sold }}</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-lg rounded-3 bg-warning text-dark d-flex flex-column h-100">
-            <div class="card-body">
-              <i class="mdi mdi-file-document-outline mdi-36px mb-3"></i> <!-- Icon for Total Transactions -->
-              <h5 class="card-title">Total Transactions</h5>
-              <h3 class="card-text">{{ total_transactions }}</h3>
-            </div>
+    <!-- Summary Cards -->
+    <div class="row text-center mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-lg rounded-3 text-white" style="background: linear-gradient(135deg, #ff7e5f, #feb47b);">
+          <div class="card-body">
+            <i class="mdi mdi-cash-register mdi-36px mb-3"></i>
+            <h5 class="card-title">Cost of Goods Sold (COGS)</h5>
+            <h3 class="card-text">UgX {{ total_cogs|floatformat:2|intcomma }}</h3>
           </div>
         </div>
       </div>
 
-      <!-- Stock Summary Cards -->
-      <div class="row text-center mb-4">
-        <!-- Stock Balance Card -->
-        <div class="col-md-6 mb-3">
-          <div class="card shadow-lg rounded-3 bg-danger text-white d-flex flex-column h-100">
-            <div class="card-body">
-              <i class="mdi mdi-package-variant mdi-36px mb-3"></i> <!-- Icon for Stock Balance -->
-              <h5 class="card-title">Stock Balance</h5>
-              <h3 class="card-text">{{ stock_balance }}</h3>
-            </div>
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-lg rounded-3 bg-primary text-white">
+          <div class="card-body">
+            <i class="mdi mdi-sale mdi-36px mb-3"></i>
+            <h5 class="card-title">Total Sales Revenue</h5>
+            <h3 class="card-text">UgX {{ total_revenue|floatformat:2|intcomma }}</h3>
           </div>
         </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-lg rounded-3 bg-success text-white">
+          <div class="card-body">
+            <i class="mdi mdi-cash mdi-36px mb-3"></i>
+            <h5 class="card-title">Total Profit After Sales</h5>
+            <h3 class="card-text">UgX {{ total_profit_after_sales|floatformat:2|intcomma }}</h3>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <!-- Total Profit After Sales Card -->
-        <div class="col-md-6 mb-3">
-          <div class="card shadow-lg rounded-3 bg-success text-white d-flex flex-column h-100">
-            <div class="card-body">
-              <i class="mdi mdi-cash mdi-36px mb-3"></i> <!-- Icon for Stock Profit -->
-              <h5 class="card-title">Total Profit After Sale</h5>
-              <h3 class="card-text">UgX {{ total_profit_after_sales|floatformat:'2'|intcomma }}</h3>
-            </div>
+    <!-- Stock Summary Cards -->
+    <div class="row text-center mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-lg rounded-3 bg-danger text-white">
+          <div class="card-body">
+            <i class="mdi mdi-package-variant mdi-36px mb-3"></i>
+            <h5 class="card-title">Stock Balance</h5>
+            <h3 class="card-text">{{ stock_balance }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-lg rounded-3 bg-info text-white">
+          <div class="card-body">
+            <i class="mdi mdi-cart-outline mdi-36px mb-3"></i>
+            <h5 class="card-title">Items Sold</h5>
+            <h3 class="card-text">{{ total_items_sold }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-lg rounded-3 bg-warning text-dark">
+          <div class="card-body">
+            <i class="mdi mdi-file-document-outline mdi-36px mb-3"></i>
+            <h5 class="card-title">Total Transactions</h5>
+            <h3 class="card-text">{{ total_transactions }}</h3>
           </div>
         </div>
       </div>
@@ -105,11 +105,11 @@
             <thead class="thead-dark">
               <tr>
                 <th>#</th>
-                <th>Date</th>
+                <th>Sale Date</th>
                 <th>Customer</th>
                 <th>Items Sold</th>
-                <th>Revenue(UgX)</th>
-                <th>Profit(UgX)</th>
+                <th>Sales Revenue</th>
+                <th>Net Profit</th>
               </tr>
             </thead>
             <tbody>
@@ -119,23 +119,28 @@
                   <td>{{ sale.trans_date }}</td>
                   <td>{{ sale.customer }}</td>
                   <td>
-                    <div class="mb-4">
-                      <h5 class="text-primary">Item Details</h5>
-                      <ul class="list-group">
-                        {% for item in sale.item_details %}
-                          <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                              <h6 class="mb-1">{{ item.product }}</h6>
-                              <small>{{ item.quantity }} @ UgX {{ item.price|floatformat:'2'|intcomma }} each - {{ item.volume }} ML</small>
-                            </div>
-                            <span class="badge bg-success rounded-pill">UgX {{ item.total|floatformat:'2'|intcomma }}</span>
-                          </li>
-                        {% endfor %}
-                      </ul>
-                    </div>
+                    <ul class="list-group">
+                      {% for item in sale.item_details %}
+                        <li class="list-group-item d-flex flex-column align-items-start">
+                          <div class="fw-bold">{{ item.product }}</div>
+                          <div class="text-muted small">
+                            <span>Cost: <span class="text-danger">UgX {{ item.cost|floatformat:2|intcomma }} @</span></span><br />
+                            <span>Price: <span class="text-success">UgX {{ item.price|floatformat:2|intcomma }} @</span></span><br />
+                            <span class="d-flex align-items-center">
+                              <i class="bi bi-box-fill mr-2 text-primary"></i>
+                              <strong class="mr-2">Qty:</strong> {{ item.quantity }}
+                              <span class="ml-3">
+                                <i class="bi bi-droplet-fill mr-2 text-success"></i>
+                                <strong class="mr-2">Vol:</strong> {{ item.volume }} ML
+                              </span>
+                            </span>
+                          </div>
+                        </li>
+                      {% endfor %}
+                    </ul>
                   </td>
-                  <td>{{ sale.grand_total|floatformat:'2'|intcomma }}</td>
-                  <td>{{ sale.profit|floatformat:2|intcomma }}</td>
+                  <td>UgX {{ sale.grand_total|floatformat:2|intcomma }}</td>
+                  <td>UgX {{ sale.profit|floatformat:2|intcomma }}</td>
                 </tr>
               {% endfor %}
             </tbody>

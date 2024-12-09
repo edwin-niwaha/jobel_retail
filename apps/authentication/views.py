@@ -225,9 +225,7 @@ def delete_profile(request, pk):
 # ===================================  Contact Us  ===================================
 @transaction.atomic
 def send_contact_email(name, email):
-    """
-    Helper function to send email after contact form submission.
-    """
+
     subject = "We've Received Your Message"
 
     message = (

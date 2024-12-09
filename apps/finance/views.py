@@ -1,8 +1,10 @@
 import logging
+from datetime import datetime
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Count, OuterRef, Subquery
 from django.db import transaction
 from datetime import date
 from openpyxl import load_workbook
@@ -13,7 +15,8 @@ from .forms import (
     TransactionFormSet,
     ImportCOAForm,
 )
-from apps.sales.models import SaleDetail
+from apps.sales.models import SaleDetail, Sale
+from apps.products.models import ProductVolume
 from .models import ChartOfAccounts, Transaction
 from apps.sales.forms import ReportPeriodForm
 
@@ -433,125 +436,6 @@ def ledger_report_view(request):
 
 
 # =================================== profit_and_loss_view ===================================
-# @login_required
-# @admin_or_manager_required
-# def profit_and_loss_view(request):
-#     # Default date range values
-#     start_date = None
-#     end_date = None
-
-#     # Initialize the profit and loss sections with dynamic sections
-#     profit_and_loss = {
-#         "Income": [],
-#         "Expenses": [],
-#         "Summary": [
-#             {"label": "Gross Profit", "value": 0.0},
-#             {"label": "Net Profit", "value": 0.0},
-#         ],
-#     }
-
-#     # Initialize the form
-#     form = ReportPeriodForm(request.GET or None)
-
-#     if form.is_valid():
-#         # Extract the start and end dates from the form
-#         start_date = form.cleaned_data["start_date"]
-#         end_date = form.cleaned_data["end_date"]
-
-#         # Filter data based on the date range
-#         sales_details = SaleDetail.objects.filter(
-#             sale__trans_date__range=(start_date, end_date)
-#         )
-#         expense_transactions = Transaction.objects.filter(
-#             transaction_date__range=(start_date, end_date),
-#             account__account_type="expense",
-#         )
-#         other_income_transactions = Transaction.objects.filter(
-#             transaction_date__range=(start_date, end_date),
-#             account__account_type="revenue",
-#         ).exclude(account__account_name="Sales Revenue")
-
-#         # Calculate Revenue: Sum of (selling price * quantity sold)
-#         revenue = (
-#             sales_details.annotate(
-#                 selling_price=F("product__productvolume__price")
-#             )
-#             .aggregate(total_revenue=Sum(F("selling_price") * F("quantity")))["total_revenue"]
-#             or 0
-#         )
-
-#         # Calculate Other Income: Sum of amounts for income transactions excluding sales revenue
-#         other_income = (
-#             other_income_transactions.aggregate(total_income=Sum("amount"))["total_income"] or 0
-#         )
-
-#         # Calculate Total Income (Revenue + Other Income)
-#         total_income = revenue + other_income
-
-#         # Dynamic Operating Expenses Calculation (Aggregate by Account Name or Account Type)
-#         expense_categories = expense_transactions.values('account__account_name').annotate(total_expense=Sum('amount'))
-
-#         operating_expenses = {}
-#         for category in expense_categories:
-#             operating_expenses[category['account__account_name']] = category['total_expense']
-
-#         total_expenses = sum(operating_expenses.values())
-
-#         # Calculate COGS (Cost of Goods Sold)
-#         cogs = (
-#             sales_details.annotate(
-#                 cost_price=F("product__productvolume__cost")
-#             )
-#             .aggregate(total_cogs=Sum(F("cost_price") * F("quantity")))["total_cogs"]
-#             or 0
-#         )
-
-#         # Calculate Gross Profit (Revenue - COGS)
-#         gross_profit = revenue - cogs
-
-#         # Calculate Net Profit (Gross Profit + Other Income - Operating Expenses)
-#         net_profit = gross_profit + other_income - total_expenses
-
-#         # Update the profit_and_loss dictionary with dynamic values
-#         # Income Section
-#         profit_and_loss["Income"].append({"label": "Sales Revenue", "value": revenue})
-
-#         # Split Other Income into categories (if applicable)
-#         other_income_categories = other_income_transactions.values('account__account_name').annotate(total_other_income=Sum('amount'))
-#         for income_category in other_income_categories:
-#             profit_and_loss["Income"].append({
-#                 "label": income_category['account__account_name'],
-#                 "value": income_category['total_other_income']
-#             })
-
-#         profit_and_loss["Income"].append({"label": "Total Other Income", "value": other_income})
-#         profit_and_loss["Income"].append({"label": "Total Income", "value": total_income})
-
-#         # Expenses Section (Dynamic categories from operating_expenses)
-#         for category, value in operating_expenses.items():
-#             profit_and_loss["Expenses"].append({"label": category, "value": value})
-
-#         # Add the total expenses
-#         profit_and_loss["Expenses"].append({"label": "Total Expenses", "value": total_expenses})
-
-#         # Add Cost of Goods Sold (COGS)
-#         profit_and_loss["Expenses"].append({"label": "Cost of Goods Sold (COGS)", "value": cogs})
-
-#         # Summary Section
-#         profit_and_loss["Summary"][0]["value"] = gross_profit
-#         profit_and_loss["Summary"][1]["value"] = net_profit
-
-#     # Pass data to the template
-#     context = {
-#         "form": form,
-#         "profit_and_loss": profit_and_loss,
-#         "start_date": start_date,
-#         "end_date": end_date,
-#         "table_title": "Profit and Loss Statement",
-#     }
-#     return render(request, "finance/profit_and_loss.html", context)
-
-
 @login_required
 @admin_or_manager_required
 def profit_and_loss_view(request):
@@ -578,9 +462,11 @@ def profit_and_loss_view(request):
         end_date = form.cleaned_data["end_date"]
 
         # Filter data based on the date range
+        # Step 1: Query the related SaleDetails for the desired Sale objects
         sales_details = SaleDetail.objects.filter(
             sale__trans_date__range=(start_date, end_date)
         )
+
         expense_transactions = Transaction.objects.filter(
             transaction_date__range=(start_date, end_date),
             account__account_type="expense",
@@ -590,26 +476,24 @@ def profit_and_loss_view(request):
             account__account_type="revenue",
         ).exclude(account__account_name="Sales Revenue")
 
-        # Calculate Revenue: Sum of (selling price * quantity sold)
-        revenue = (
-            sales_details.annotate(
-                selling_price=F("product__productvolume__price")
-            ).aggregate(total_revenue=Sum(F("selling_price") * F("quantity")))[
-                "total_revenue"
-            ]
-            or 0
+        # Step 2: Aggregate total revenue (Sum of quantity * price)
+        total_revenue = sales_details.aggregate(
+            total_revenue=Sum(F("quantity") * F("price"))
         )
 
-        # Calculate Other Income: Sum of amounts for income transactions excluding sales revenue
-        other_income = (
-            other_income_transactions.aggregate(total_income=Sum("amount"))[
-                "total_income"
-            ]
-            or 0
-        )
+        # Step 3: Extract the total revenue value from the dictionary
+        # Ensure it is a Decimal (if None, set to Decimal("0.00"))
+        revenue_value = Decimal(total_revenue["total_revenue"] or "0.00")
 
-        # Calculate Total Income (Revenue + Other Income)
-        total_income = revenue + other_income
+        # Step 4: Calculate Other Income (Sum of amounts for income transactions)
+        other_income = other_income_transactions.aggregate(total_income=Sum("amount"))[
+            "total_income"
+        ] or Decimal(
+            "0.00"
+        )  # Default to Decimal(0.00) if None or no data
+
+        # Step 5: Calculate Total Income (Revenue + Other Income)
+        total_income = revenue_value + other_income
 
         # Dynamic Operating Expenses Calculation (Aggregate by Account Name or Account Type)
         expense_categories = (
@@ -632,21 +516,22 @@ def profit_and_loss_view(request):
 
         # Calculate COGS (Cost of Goods Sold)
         cogs = (
-            sales_details.annotate(
-                cost_price=F("product__productvolume__cost")
-            ).aggregate(total_cogs=Sum(F("cost_price") * F("quantity")))["total_cogs"]
-            or 0
-        )
+            SaleDetail.objects.filter(sale__trans_date__range=[start_date, end_date])
+            .annotate(cogs=F("product_volume__cost") * F("quantity"))
+            .aggregate(total_cogs=Sum("cogs"))
+        )["total_cogs"] or 0
 
         # Calculate Gross Profit (Revenue - COGS)
-        gross_profit = revenue - cogs
+        gross_profit = revenue_value - cogs
 
         # Calculate Net Profit (Gross Profit + Other Income - Operating Expenses)
         net_profit = gross_profit + other_income - total_expenses
 
         # Update the profit_and_loss dictionary with dynamic values
         # Income Section
-        profit_and_loss["Income"].append({"label": "Sales Revenue", "value": revenue})
+        profit_and_loss["Income"].append(
+            {"label": "Sales Revenue", "value": revenue_value}
+        )
 
         # Split Other Income into categories (if applicable)
         other_income_categories = (
@@ -700,3 +585,107 @@ def profit_and_loss_view(request):
         "table_title": "Profit and Loss Statement",
     }
     return render(request, "finance/profit_and_loss.html", context)
+
+
+# =================================== Balnce Sheet View ===================================
+@login_required
+@admin_or_manager_required
+def balance_sheet_view(request):
+    # Set the date range (start_date, end_date) based on user input or defaults
+    start_date = request.GET.get("start_date", datetime.today().strftime("%Y-%m-%d"))
+    end_date = request.GET.get("end_date", datetime.today().strftime("%Y-%m-%d"))
+
+    # Convert string dates to date objects
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    # Fetch transactions for the selected date range
+    transactions = Transaction.objects.filter(
+        transaction_date__range=[start_date, end_date]
+    )
+
+    # Initialize the balances
+    assets = 0
+    liabilities = 0
+    equity = 0
+    revenue = 0
+    expenses = 0
+
+    # Calculate the balances based on account type
+    for account in ChartOfAccounts.objects.all():
+        account_transactions = transactions.filter(account=account)
+
+        # Calculate the net balance for the account
+        debit_total = (
+            account_transactions.filter(transaction_type="debit").aggregate(
+                Sum("amount")
+            )["amount__sum"]
+            or 0
+        )
+        credit_total = (
+            account_transactions.filter(transaction_type="credit").aggregate(
+                Sum("amount")
+            )["amount__sum"]
+            or 0
+        )
+        net_balance = debit_total - credit_total
+
+        total_amount = account_transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+
+        if account.account_type == "asset":
+            assets += net_balance
+        elif account.account_type == "liability":
+            liabilities += net_balance
+        elif account.account_type == "equity":
+            equity += total_amount
+        elif account.account_type == "revenue":
+            revenue += total_amount
+        elif account.account_type == "expense":
+            expenses += total_amount
+
+    # Fetch SaleDetails within the date range
+    sales_details = SaleDetail.objects.filter(
+        sale__trans_date__range=(start_date, end_date)
+    )
+
+    # Calculate Revenue: Sum of (selling price * quantity sold)
+    sales_revenue = (
+        sales_details.annotate(selling_price=F("product_volume__price")).aggregate(
+            total_revenue=Sum(F("selling_price") * F("quantity"))
+        )["total_revenue"]
+        or 0
+    )
+
+    # Calculate Cost of Goods Sold (COGS)
+    cogs = (
+        sales_details.annotate(cost_price=F("product_volume__cost")).aggregate(
+            total_cogs=Sum(F("cost_price") * F("quantity"))
+        )["total_cogs"]
+        or 0
+    )
+
+    # Calculate Gross Profit (Sales Revenue - COGS)
+    gross_profit = sales_revenue - cogs
+
+    # Calculate Net Profit (Gross Profit + Other Income - Operating Expenses)
+    net_income = gross_profit + revenue - expenses
+
+    # Calculate Retained Earnings: Retained Earnings = Net Income + Previous Retained Earnings
+    retained_earnings = equity + net_income
+
+    # Ensure assets = liabilities + equity
+    liabilities = assets - equity
+
+    # Return the result to the template
+    context = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "assets": assets,
+        "liabilities": liabilities,
+        "equity": equity,
+        "retained_earnings": retained_earnings,
+        "net_income": net_income,
+        "table_title": "Statement of Financial Position",
+    }
+
+    return render(request, "finance/balance_sheet.html", context)

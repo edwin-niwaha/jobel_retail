@@ -18,6 +18,7 @@ urlpatterns = [
         name="chart_of_account_delete",
     ),
     path("profit-and-loss/", views.profit_and_loss_view, name="profit_and_loss"),
+    path("balance-sheet/", views.balance_sheet_view, name="balance_sheet"),
     path(
         "income/add/",
         views.income_transaction_create_view,

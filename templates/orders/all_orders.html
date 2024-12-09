@@ -25,7 +25,13 @@
                 </select>
             </form>
         </div>
-
+    <!-- Search Form -->
+    <form method="get" action="{% url 'orders:all_orders' %}" class="mb-3">
+      <div class="input-group">
+        <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search orders" />
+        <button class="btn btn-primary" type="submit"><i class="mdi mdi-search"></i> Search</button>
+      </div>
+    </form>
         <div class="card-body">
             {% if orders %}
             <div class="table-responsive">
@@ -37,7 +43,7 @@
                             <th>Date</th>
                             <th>Total Amount</th>
                             <th>Status</th>
-                            <th class="print-hide">Action</th>
+                            <th colspan="2" class="print-hide">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,6 +75,31 @@
                                     View Details
                                 </a>
                             </td>
+                            <td class="print-hide">
+                                {% if user.profile.role == 'administrator' or user.profile.role == 'manager' %}
+                                  <!-- Delete button and modal -->
+                                  <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ order.id }}" title="Delete Order"><i class="mdi mdi-delete-outline"></i></button>
+          
+                                  <!-- Delete Modal -->
+                                  <div class="modal fade" id="deleteModal{{ order.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ order.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                      <div class="modal-content">
+                                        <div class="modal-header">
+                                          <h5 class="modal-title" id="deleteModalLabel{{ order.id }}">Delete Order</h5>
+                                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                                        </div>
+                                        <div class="modal-body">
+                                          Are you sure you want to delete the order: <strong>{{ order.id }}</strong>?
+                                        </div>
+                                        <div class="modal-footer">
+                                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                          <a href="{% url 'orders:delete_order' order.id %}" class="text-decoration-none"><button type="button" class="btn btn-danger">Delete</button></a>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                {% endif %}
+                              </td>
                         </tr>
                         {% empty %}
                         <tr>
@@ -77,6 +108,20 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                            <!-- Pagination -->
+            <div class="d-flex justify-content-between">
+              <div>
+                {% if orders.has_previous %}
+                  <a href="?page=1&search={{ search_query }}" class="btn btn-link">First</a>
+                  <a href="?page={{ orders.previous_page_number }}&search={{ search_query }}" class="btn btn-link">Previous</a>
+                {% endif %}
+                <span>Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+                {% if orders.has_next %}
+                  <a href="?page={{ orders.next_page_number }}&search={{ search_query }}" class="btn btn-link">Next</a>
+                  <a href="?page={{ orders.paginator.num_pages }}&search={{ search_query }}" class="btn btn-link">Last</a>
+                {% endif %}
+              </div>
+            </div>
             </div>
             {% else %}
             <p class="text-center">No orders available at the moment.</p>
