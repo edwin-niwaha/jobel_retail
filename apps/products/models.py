@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from apps.supplier.models import Supplier
 from cloudinary.models import CloudinaryField
+import cloudinary.uploader
 
 # Define choices for product status
 STATUS_CHOICES = [
@@ -141,6 +142,14 @@ class ProductVolume(models.Model):
         verbose_name = "Product Volume"
         verbose_name_plural = "Product Volumes"
 
+    def save(self, *args, **kwargs):
+        if self.image and not str(self.image).startswith("http"):
+            upload_result = cloudinary.uploader.upload(
+                self.image.file, folder="product_volume_images"
+            )
+            self.image = upload_result["url"]
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.product.name} - {self.volume.ml}ML (Cost: {self.cost}, Price: {self.price})"
 
@@ -183,4 +192,12 @@ class ProductImage(models.Model):
                 is_default=False
             )
 
+        super().save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        if self.image and not str(self.image).startswith("http"):
+            upload_result = cloudinary.uploader.upload(
+                self.image.file, folder="product_images"
+            )
+            self.image = upload_result["url"]
         super().save(*args, **kwargs)
