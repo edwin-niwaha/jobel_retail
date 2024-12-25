@@ -1,35 +1,64 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
 {% block title %}
   About Us Page
 {% endblock %}
 
 {% block content %}
+  <style>
+    .para-text {
+      line-height: 2rem;
+      text-align: justify;
+    }
+  </style>
   <div class="container-fluid my-3">
-    <div class="row justify-content-center">
-      <div class="col-lg-12 col-md-12">
-        <div class="card shadow-lg border-0 rounded-lg">
-          <div class="card-header text-center bg-primary text-white">
-            <h3 class="font-weight-light my-2">ABOUT US</h3>
-          </div>
-          <div class="card-body">
-            <p class="lead text-center mb-4">
-              Welcome to <strong>Jobell Fragrance Shop</strong>, your ultimate destination for exquisite scents that elevate your spirit and enhance your unique identity. At Jobell, we believe that fragrance is not just a scent; it's an experience, a memory, and a reflection of your personality.
-            </p>
+    <hr />
+    <section class="section-content padding-y">
+      <div class="container-xl d-flex justify-content-center align-items-center">
+        <div class="row justify-content-center w-100">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-12 text-center">
+                <img src="{% static 'images/file.png' %}" alt="About Logo" class="img-fluid mb-4" />
+                <h2>About Us</h2>
+                <p class="para-text">Welcome to our website! We are dedicated to providing you with the best online shopping experience. Our journey began with a simple idea: to make shopping easy, accessible, and enjoyable for everyone. Over the years, we have grown into a trusted online retailer, offering a wide range of products to meet your needs.</p>
+              </div>
+            </div>
 
-            <h2 class="mt-4">Our Mission</h2>
-            <p>Our mission is to provide our customers with a diverse range of fragrances that cater to all tastes and occasions. Whether you're looking for a signature scent, a special gift, or a refreshing everyday fragrance, we are here to help you discover the perfect aroma that resonates with you.</p>
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <h3>Our Mission</h3>
+                <p class="para-text">Our mission is to provide our customers with high-quality products at competitive prices, backed by exceptional customer service. We strive to create a seamless shopping experience, from browsing to delivery, ensuring that you receive the best value and satisfaction.</p>
+              </div>
+              <div class="col-md-6">
+                <h3>Our Vision</h3>
+                <p class="para-text">Our vision is to be the leading online retailer, known for our commitment to quality, innovation, and customer satisfaction. We aim to continuously expand our product range and improve our services to meet the evolving needs of our customers.</p>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-md-12">
+                <h3>Our Values</h3>
+                <i class="fas fa-check-circle" style="color: green; line-height: 2rem; text-align: justify"></i>
+                <strong>Customer First:</strong> We prioritize our customers' needs and strive to exceed their expectations with every interaction.
+                <br />
 
-            <h2 class="mt-4">Our Commitment</h2>
-            <p>At Jobell, we are committed to exceptional customer service and satisfaction. Our knowledgeable team is dedicated to guiding you through our offerings, ensuring you find exactly what you’re looking for. We prioritize quality, authenticity, and affordability, making luxurious scents accessible to everyone.</p>
-
-            <h2 class="mt-4">Join Us on This Fragrant Journey</h2>
-            <p>Explore our extensive collection and indulge in the art of fragrance with Jobell. Experience the transformative power of scent and let us help you create your own fragrant journey.</p>
-
-            <p class="text-center mt-4">Thank you for choosing Jobell Fragrance Shop. We look forward to serving you!</p>
+                <i class="fas fa-check-circle" style="color: green; line-height: 2rem; text-align: justify"></i>
+                <strong>Quality:</strong> We are committed to offering products of the highest quality and stand behind everything we sell.
+                <br />
+                <i class="fas fa-check-circle" style="color: green; line-height: 2rem; text-align: justify"></i>
+                <strong>Integrity:</strong> We conduct our business with honesty and transparency
+              </div>
+            </div>
+            <div class="row mt-3">
+              <p class="para-text">
+                We hope you enjoy our products as much as we enjoy offering them to you. If you have any questions or comments, please don't hesitate to
+                <a href="{% url 'contact_us' %}">contact us.</a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 {% endblock %}

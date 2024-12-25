@@ -30,6 +30,29 @@
         JOBELL
       {% endblock %}
     </title>
+    <style>
+      .fixed-marquee {
+        position: fixed;
+        top: 56px; /* Height of the navbar */
+        width: 100%;
+        z-index: 1029; /* Below the navbar but above the content */
+      }
+      
+      body {
+        padding-top: 96px; /* Adjust padding to account for navbar + marquee */
+      }
+      .product-item .carousel-item img {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .product-item .carousel-item:hover img {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+      .product-image {
+        border-radius: 15px; /* Apply rounded corners to images */
+      }
+    </style>
   </head>
 
   <body>
@@ -48,6 +71,7 @@
     <!-- Content -->
     <div class="container-fluid">
       {% block content %}
+
       {% endblock %}
     </div>
 

@@ -17,6 +17,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key")
 
 # Update to False in Production
 DEBUG = False
+# DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "jobellstore.up.railway.app"]
 CSRF_TRUSTED_ORIGINS = ["https://jobellstore.up.railway.app"]
 
@@ -244,6 +245,7 @@ USE_TZ = True
 # Login and session settings
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "login"
+
 
 SESSION_COOKIE_AGE = 3600  # 60 * 60 seconds = 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Close session when browser closes

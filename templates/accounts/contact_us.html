@@ -1,37 +1,51 @@
-{% extends "accounts/base.html" %}
+{% extends 'accounts/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %} Contact Us {% endblock title%}
+{% block title %}
+  Contact Us
+{% endblock %}
 {% block content %}
-<div class="form-content my-3 p-3">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-7">
-                <div class="card shadow-lg border-0 rounded-lg mt-0 mb-5">
-                    <div class="card-header justify-content-center">
-                        <h3 class="font-weight-light my-4 text-center" style="color:#F79420;">CONTACT US</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="col-md-12">
-                            <form id="contact-form" method="post" action="{% url 'contact_us' %}">
-                                {% csrf_token %}
-                                {{ form|crispy }}
-                                <div class="form-row">
-                                    <div class="col-md-12">
-                                        <div class="form-group mt-0 mb-1">
-                                            <button type="submit" class="col-md-12 btn btn-dark"
-                                                onclick="return confirm('Are you sure you want to proceed?') && validateForm()">
-                                                Submit Feedback</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+  <div class="form-content my-3">
+    <hr />
+    <section class="section-content padding-bottom">
+      <div class="mx-auto" style="max-width: 85rem; margin-top: 50px">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-5 mr-auto">
+              <h2 style="text-align: left">Contact Us</h2>
+              <p class="mb-5" style="margin-top: revert; text-align: justify; line-height: 2rem">Have questions or need help with your order? Our dedicated support team is here to assist you with any inquiries you may have. Whether you need help tracking an order, have questions about a product, or need assistance with a return, we're here to help. Don't hesitate to reach out to us anytime!</p>
+              <ul class="contact-info list-unstyled pl-md-5 mb-5">
+                <li class="d-flex text-black mb-2">
+                  <span class="mr-3"><i class="fas fa-map-marker-alt"></i></span>
+                  Pioneer Mall, Room 100, Kampala Uganda
+                </li>
+                <li class="d-flex text-black mb-2">
+                  <span class="mr-3"><i class="fas fa-phone"></i></span>
+                  +256 754-969584
+                </li>
+                <li class="d-flex text-black">
+                  <span class="mr-3"><i class="fas fa-envelope"></i></span>
+                  <a href="mailto:support@jobellinc.com">jobellinc@gmail.com</a>
+                </li>
+              </ul>
             </div>
+            <div class="col-md-6">
+              <form id="contact-form" method="post" action="{% url 'contact_us' %}">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="form-row">
+                  <div class="col-md-12">
+                    <div class="form-group mt-0 mb-1">
+                      <button type="submit" class="col-md-12 btn btn-dark" onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Send Message</button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-    </div>
-</div>
-
-{% endblock content %}
+      </div>
+    </section>
+    <hr />
+  </div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}
+  Your Wishlist
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid mt-4">
+    <h2 class="text-center wishlist-heading"><i class="fas fa-heart text-danger"></i> Your Wishlist</h2> <hr />
+
+    {% if page_obj %}
+      <div class="row">
+        {% for item in page_obj %}
+          <div class="col-md-3 mb-4">
+            <!-- Change col-md-4 to col-md-3 for 4 items per row -->
+            <div class="card">
+              {% if item.default_image %}
+                <img src="{{ item.default_image.image.url }}" class="card-img-top" alt="{{ item.product.name }}" style="height: 200px; object-fit: cover;" />
+              {% else %}
+                <img src="{% static 'images/default-product.jpg' %}" class="card-img-top" alt="Default Product Image" style="height: 200px; object-fit: cover;" />
+              {% endif %}
+              <div class="card-body">
+                <h5 class="card-title">{{ item.product.name }}</h5>
+
+                <!-- View Product Details Button with Icon -->
+                <a href="{% url 'orders:product_detail' item.product.id %}" title="View Product details" class="btn btn-primary btn-sm me-3"><i class="mdi mdi-eye me-2 fs-4"></i></a>
+
+                <!-- Remove from Wishlist Button with Icon -->
+                <button type="button" class="btn btn-danger btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#removeModal{{ item.id }}" title="Remove from Wishlist"><i class="mdi mdi-delete me-2 fs-4"></i></button>
+
+                <!-- Modal -->
+                <div class="modal fade" id="removeModal{{ item.id }}" tabindex="-1" aria-labelledby="removeModalLabel{{ item.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="removeModalLabel{{ item.id }}">Confirm Removal</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        Are you sure you want to delete the product: <h3>{{ item.product.name }}</h3>?
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <!-- Form to remove the product from the wishlist -->
+                        <form action="{% url 'orders:remove_from_wishlist' item.id %}" method="post">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-sm w-100 w-md-auto">Remove</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        <span class="page-link">
+          {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; First</a>
+            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+          {% endif %}
+        </span>
+
+        <span class="page-link">
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+          {% endif %}
+        </span>
+      </div>
+    {% else %}
+      <p>Your wishlist is empty. Start adding products!</p>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -10,13 +10,14 @@ import uuid
 from django.http import JsonResponse
 import logging
 import base64
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
-from .models import Cart, CartItem, Order, OrderDetail
-from apps.products.models import Product, ProductVolume
+from .models import Cart, CartItem, Order, OrderDetail, Wishlist
+from apps.products.models import Product, ProductVolume, ProductImage
 from django.core.exceptions import MultipleObjectsReturned
 from .forms import CheckoutForm, OrderStatusForm
 from apps.customers.models import Customer
@@ -48,6 +49,75 @@ def product_detail(request, id):
     }
 
     return render(request, "orders/product_detail.html", context)
+
+
+# =================================== Products Wishlist ===================================
+@login_required
+def wishlist_add(request, product_id):
+    # Get the product object
+    product = get_object_or_404(Product, id=product_id)
+
+    # Check if the product is already in the user's wishlist
+    wishlist_item, created = Wishlist.objects.get_or_create(
+        user=request.user, product=product
+    )
+
+    if created:
+        # Product added to wishlist
+        messages.success(
+            request,
+            f"Product '{product.name}' has been added to your wishlist!",
+            extra_tags="bg-success",
+        )
+    else:
+        # Product already in wishlist
+        messages.info(
+            request,
+            f"Product '{product.name}' is already in your wishlist.",
+            extra_tags="bg-warning",
+        )
+
+    # Redirect back to the product detail page
+    return redirect("orders:product_detail", id=product.id)
+
+
+# =================================== wishlist_view ===================================
+@login_required
+def wishlist_view(request):
+    # Fetch all the products in the user's wishlist
+    wishlist_items = Wishlist.objects.filter(user=request.user)
+
+    # Paginate the wishlist items (10 items per page)
+    paginator = Paginator(wishlist_items, 12)  # Show 10 wishlist items per page
+    page_number = request.GET.get(
+        "page"
+    )  # Get the current page number from the request
+    page_obj = paginator.get_page(page_number)  # Get the page object
+
+    # Fetch the default image for each product in the wishlist
+    for item in page_obj:
+        item.default_image = ProductImage.objects.filter(
+            product=item.product, is_default=True
+        ).first()
+
+    # Pass the page object to the template
+    context = {"page_obj": page_obj}
+    return render(request, "orders/wishlist.html", context)
+
+
+# =================================== remove_from_wishlist ===================================
+@login_required
+def remove_from_wishlist(request, product_id):
+    # Get the wishlist item to remove
+    wishlist_item = get_object_or_404(
+        Wishlist, user=request.user, product_id=product_id
+    )
+
+    # Remove the item from the wishlist
+    wishlist_item.delete()
+
+    # Redirect back to the wishlist view
+    return redirect("orders:wishlist")
 
 
 # =================================== add_to_cart ===================================

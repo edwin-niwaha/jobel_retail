@@ -6,30 +6,21 @@
   <div class="container-fluid">
     <div class="row">
       <!-- Product Image Carousel -->
-      <div class="col-12 col-md-6 mb-4">
+      <div class="col-12 col-md-6 mb-4 product-item">
         <div id="product-carousel" class="carousel slide" data-bs-ride="carousel" aria-label="Product Image Carousel">
           <div class="carousel-inner">
             {% if product.images.exists %}
               {% for image in product.images.all %}
                 <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                  <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ product.name }}" />
+                  <img src="{{ image.image.url }}" class="d-block w-100 product-image" alt="{{ product.name }}" />
                 </div>
               {% endfor %}
             {% else %}
               <div class="carousel-item active">
-                <img src="{% static 'default_product_image.jpg' %}" class="d-block w-100" alt="No image available" />
+                <img src="{% static 'default_product_image.jpg' %}" class="d-block w-100 product-image" alt="No image available" />
               </div>
             {% endif %}
           </div>
-          <!-- Carousel Controls -->
-          <button class="carousel-control-prev" type="button" data-bs-target="#product-carousel" data-bs-slide="prev" aria-label="Previous Image">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-          </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#product-carousel" data-bs-slide="next" aria-label="Next Image">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-          </button>
         </div>
       </div>
 
@@ -62,9 +53,14 @@
                 <select name="volume_id" id="volume" form="add-to-cart-form" class="form-control" required>
                   {% for product_volume in product_volumes %}
                     <option value="{{ product_volume.id }}"
-                            data-image-url="{% if product_volume.image %}{{ product_volume.image.url }}{% else %}/static/images/no-image.png{% endif %}">
-                      {{ product_volume.product_type }} - {{ product_volume.volume.ml }} ML - Price: {{ product_volume.price|floatformat:'2'|intcomma }}
-                    </option>
+                      data-image-url="{% if product_volume.image %}
+                        {{ product_volume.image.url }}
+                      {% else %}
+                        
+
+                        /staticfiles/images/no-image.png
+
+                      {% endif %}">{{ product_volume.product_type }} - {{ product_volume.volume.ml }} ML - Price: {{ product_volume.price|floatformat:'2'|intcomma }}</option>
                   {% endfor %}
                 </select>
               </td>
@@ -85,18 +81,32 @@
             </div>
             <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to proceed?') && validateForm()">Add to Cart</button>
           </form>
+          <form method="POST" class="mx-1" action="{% url 'orders:wishlist_add' product.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-primary ms-2"><i class="fas fa-heart"></i> Add to Wishlist</button>
+          </form>
 
           {% if user.is_authenticated %}
             <a href="{% url 'orders:cart' %}" title="View Cart" class="ml-md-3 mt-3 mt-md-0">
               <i class="mdi mdi-cart fs-3"></i>
               <span class="badge badge-pill badge-danger">{{ cart_count|default:0 }}</span>
+              <button class="btn btn-primary ms-2">View cart</button>
             </a>
           {% else %}
             <div class="alert alert-warning mb-0 ml-md-3 mt-3 mt-md-0">You must log in to start shopping.</div>
           {% endif %}
         </div>
+        <hr />
         <!-- Product Image Based on Volume Selection -->
-        <img id="volume-image" src="{% if product_volumes and product_volumes.0.image %}{{ product_volumes.0.image.url }}{% else %}/static/images/no-image.png{% endif %}" alt="Product Image" class="rounded-circle img-fluid mt-3" style="max-height: 150px; object-fit: cover;" />
+        <img id="volume-image"
+          src="{% if product_volumes and product_volumes.0.image %}
+            {{ product_volumes.0.image.url }}
+          {% else %}
+            {% static 'images/no-image.png' %}
+          {% endif %}"
+          alt="Product Image"
+          class="rounded-circle img-fluid mt-3"
+          style="width: 150px; height: 150px; object-fit: cover; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);" />
       </div>
     </div>
   </div>
@@ -105,13 +115,13 @@
   <script>
     document.getElementById('volume').addEventListener('change', function () {
       // Get the selected option
-      var selectedOption = this.options[this.selectedIndex];
-
+      var selectedOption = this.options[this.selectedIndex]
+    
       // Get the image URL from the data attribute
-      var imageUrl = selectedOption.getAttribute('data-image-url');
-
+      var imageUrl = selectedOption.getAttribute('data-image-url')
+    
       // Update the image source
-      document.getElementById('volume-image').src = imageUrl;
-    });
+      document.getElementById('volume-image').src = imageUrl
+    })
   </script>
 {% endblock %}

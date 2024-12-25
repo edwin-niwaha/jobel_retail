@@ -3,158 +3,128 @@
 {% load humanize %}
 
 {% block content %}
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Start carousel -->
-      <div class="col-md-6 m-auto">
-        <div class="p-4">
-          <div id="carouselExampleCaptions" class="carousel slide" data-ride="carousel" data-interval="5000">
-            <div class="carousel-inner">
-              <div class="carousel-item active">
-                <img src="{% static 'images/1.png' %}" class="d-block w-100" alt="Slide 1" />
-                <div class="carousel-caption d-none d-md-block">
-                  <h5 class="text-dark">Classic Elegance</h5>
-                  <p class="text-dark">Eau de Parfum Classic Elegance</p>
-                </div>
-              </div>
-              <div class="carousel-item">
-                <img src="{% static 'images/2.png' %}" class="d-block w-100" alt="Slide 2" />
-                <div class="carousel-caption d-none d-md-block">
-                  <h5 class="text-dark">Fresh Citrus Burst</h5>
-                  <p class="text-dark">Citrus Burst Eau de Toilette</p>
-                </div>
-              </div>
-              <!-- Additional carousel items -->
-              <div class="carousel-item">
-                <img src="{% static 'images/3.png' %}" class="d-block w-100" alt="Slide 3" />
-                <div class="carousel-caption d-none d-md-block">
-                  <h5 class="text-dark">Romantic Blossom</h5>
-                  <p class="text-dark">Romantic Blossom Eau de Parfum</p>
-                </div>
-              </div>
-              <div class="carousel-item">
-                <img src="{% static 'images/4.png' %}" class="d-block w-100" alt="Slide 4" />
-                <div class="carousel-caption d-none d-md-block">
-                  <h5 class="text-dark">Modern Spice</h5>
-                  <p class="text-dark">Modern Spice Eau de Toilette</p>
-                </div>
-              </div>
-              <div class="carousel-item">
-                <img src="{% static 'images/5.png' %}" class="d-block w-100" alt="Slide 5" />
-                <div class="carousel-caption d-none d-md-block">
-                  <h5>Elegant Woody</h5>
-                  <p class="text-dark">Elegant Woody Eau de Parfum</p>
-                </div>
-              </div>
-            </div>
-            <a class="carousel-control-prev" href="#carouselExampleCaptions" role="button" data-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="sr-only">Previous</span>
-            </a>
-            <a class="carousel-control-next" href="#carouselExampleCaptions" role="button" data-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="sr-only">Next</span>
-            </a>
-          </div>
-        </div>
+  <div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+      <hr />
+
+      <div class="col-md-2 text-center text-md-start">
+        <!-- Logo -->
+        <a href="/"><img src="{% static 'images/file.png' %}" alt="Logo" class="img-fluid" style="max-height: 90px;" /></a>
       </div>
-      <!-- End carousel -->
+      <div class="col-md-4 text-center text-md-start">
+        <h5 class="mt-2">Turn your dream perfume into reality.</h5>
+      </div>
 
-      <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="p-3">
-          <div class="d-flex flex-column justify-content-center align-items-center">
-            <div class="text-center">
-              <h3>JOBELL - FRAGRANCE SHOP</h3>
-              <hr class="my-3" style="height: 4px; background-color: #008080;" />
-              {% if user.is_authenticated %}
-                <a class="btn btn-warning btn-lg mb-3 w-100" href="{% url 'logout' %}" role="button" onclick="return confirm('Are you sure you want to logout?');"><i class="mdi mdi-logout"></i>Logout</a>
-                <a href="{% url 'orders:customer_order_history' %}" class="btn btn-primary btn-lg w-100"><i class="mdi mdi-history"></i>View Your Order History</a>
-              {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary btn-lg mb-2 w-100">Sign In</a>
-                <span class="d-block my-2">OR</span>
-                <a href="{% url 'users-register' %}" class="btn btn-primary btn-lg w-100">Register</a>
-              {% endif %}
-              <hr class="my-3" style="height: 4px; background-color: #008080;" />
+      <div class="col-md-6">
+        <div class="hero text-center">
+          <div class="d-flex justify-content-center gap-3">
+            <!-- Step Indicators with Line -->
+            <div class="d-flex align-items-center gap-2">
+              <!-- Wishlist Icon -->
+              <a href="{% url 'orders:wishlist' %}" title="View wishlist" class="ml-md-3 mt-3 mt-md-0"><i class="mdi mdi-heart-outline fs-3"></i></a>
+              <span class="badge badge-pill badge-danger">{{ wishlist_count|default:0 }}</span>Wishlist
 
-              <!-- Welcome Message -->
-              <div class="welcome-message">
-                <p class="text-break">
-                  Dear <span style="color:#F79420;">
-                    {{ user.username.title|default:'Guest' }}
-                    {% if user.profile.role %}
-                      <small class="text-muted">({{ user.profile.get_role_display }})</small>
-                    {% endif %}
-                  </span>, Welcome to Jobell Store
-                </p>
-                <h4 class="mt-2">Turn your dream perfume into reality.</h4>
-              </div>
+              <!-- Connecting Line for Step 1 to Step 2 -->
+              <div class="step-line" style="width: 30px; height: 2px; background-color: #007bff;"></div>
+
+              <!-- Cart Icon -->
+              <a href="{% url 'orders:cart' %}" title="View Cart" class="ml-md-3 mt-3 mt-md-0"><i class="mdi mdi-cart fs-3"></i></a>
+              <!-- Cart Count Badge -->
+              <span class="badge badge-pill badge-danger">{{ cart_count|default:0 }}</span>
+
+              <!-- Connecting Line for Cart to Orders -->
+              <div class="step-line" style="width: 30px; height: 2px; background-color: #007bff;"></div>
+
+              <!-- Orders Icon -->
+              <a href="{% url 'orders:customer_order_history' %}" title="View Orders" class="ml-md-3 mt-3 mt-md-0"><i class="mdi mdi-receipt fs-3"></i></a>
+              <span class="badge badge-pill badge-danger">{{ order_count|default:0 }}</span>Orders
             </div>
           </div>
         </div>
       </div>
     </div>
-    <hr class="my-4" style="height: 5px; background-color: #008080;" />
+    <hr />
+    <!-- Filters and Sorting -->
+    <form method="get" action="{% url 'users-home' %}" class="py-2">
+      <div class="row g-3">
+        <!-- Category Filter -->
+        <div class="col-md-3 col-sm-6">{{ form.category }}</div>
 
-    <div class="row mb-4">
-      <!-- Search Form -->
-      <h3 class="text-center">WELCOME TO OUR STORE!</h3>
-      <div class="col-12">
-        <div class="input-group">
-          <span class="input-group-text" style="background-color: #007bff; border: none; color: white; border-radius: 5px 0 0 5px;"><i class="mdi mdi-magnify" style="font-size: 20px;"></i></span>
-          <input type="text" id="searchInput" placeholder="Search..." class="form-control" style="border-radius: 0 5px 5px 0; height: 40px; background-color: #f0f0f0; border: 1px solid #ccc;" />
+        <!-- Price Range Filters -->
+        <div class="col-md-2 col-sm-6">{{ form.min_price }}</div>
+        <div class="col-md-2 col-sm-6">{{ form.max_price }}</div>
+
+        <!-- Search Filter -->
+        <div class="col-md-5 col-sm-6 d-flex">
+          <div class="me-2 w-100">{{ form.search }}</div>
+          <button type="submit" class="btn btn-primary"><i class="mdi mdi-filter-outline me-2"></i>Filter</button>
         </div>
       </div>
-    </div>
+    </form>
 
-    <!-- Products on Sale -->
-    <div class="row" id="search_list">
+    <hr />
+
+    <!-- Products Grid -->
+    <div class="row mt-4" id="search_list">
       {% if products_with_images %}
         {% for product_info in products_with_images %}
           {% with product=product_info.product images=product_info.images min_price=product_info.min_price max_price=product_info.max_price %}
-            <div class="col-md-4 mb-4 product-item">
-              <div class="card h-100">
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
+              <div class="card h-100 shadow-sm">
+                <!-- Carousel -->
                 <div id="carousel-{{ product.id }}" class="carousel slide" data-ride="carousel">
                   <div class="carousel-inner">
                     {% if images %}
                       {% for image in images %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                          <a href="{% url 'orders:product_detail' product.id %}"><img src="{{ image.image.url }}" class="d-block w-100 mx-auto" style="max-height: 200px; object-fit: contain;" alt="{{ product.name }}" /></a>
+                          <a href="{% url 'orders:product_detail' product.id %}"><img src="{{ image.image.url }}" class="d-block w-100 rounded-3 img-fluid" style="max-height: 200px; object-fit: cover;" alt="{{ product.name }}" /></a>
                         </div>
                       {% endfor %}
                     {% else %}
                       <div class="carousel-item active">
-                        <a href="{% url 'orders:product_detail' product.id %}"><img src="{% static 'default_image.png' %}" class="d-block w-100 mx-auto" style="max-height: 200px; object-fit: contain;" alt="No image available" /></a>
+                        <a href="{% url 'orders:product_detail' product.id %}"><img src="{% static 'default_image.png' %}" class="d-block w-100 rounded-3 img-fluid" style="max-height: 200px; object-fit: cover;" alt="No image available" /></a>
                       </div>
                     {% endif %}
                   </div>
-                  <a class="carousel-control-prev" href="#carousel-{{ product.id }}" role="button" data-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="sr-only">Previous</span>
-                  </a>
-                  <a class="carousel-control-next" href="#carousel-{{ product.id }}" role="button" data-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="sr-only">Next</span>
-                  </a>
                 </div>
-                <div class="card-body d-flex flex-column align-items-center text-center">
+                <!-- Product Info -->
+                <div class="card-body text-center">
                   <h5 class="card-title text-uppercase">{{ product.name }}</h5>
                   <p class="card-text">{{ product.category }} - {{ product.gender }}</p>
-                  <div class="card-text">
+                  <p class="card-text">
                     <strong>Price:</strong>
                     {% if min_price and max_price %}
                       UgX {{ min_price|floatformat:'2'|intcomma }} - UgX {{ max_price|floatformat:'2'|intcomma }}
                     {% else %}
                       Price not available
                     {% endif %}
-                  </div>
+                  </p>
                 </div>
               </div>
             </div>
           {% endwith %}
         {% endfor %}
       {% else %}
-        <p class="col-12">No products available.</p>
+        <p class="col-12 text-center">No products available.</p>
       {% endif %}
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+      <span class="step-links">
+        {% if page_obj.has_previous %}
+          <a href="?page=1&search={{ search_query }}">&laquo; first</a>
+          <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}">previous</a>
+        {% endif %}
+
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}">next</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}">last &raquo;</a>
+        {% endif %}
+      </span>
     </div>
   </div>
 {% endblock %}

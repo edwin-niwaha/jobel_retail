@@ -4,6 +4,13 @@ from . import views
 app_name = "orders"
 urlpatterns = [
     path("product/<int:id>/", views.product_detail, name="product_detail"),
+    path("wishlist/add/<int:product_id>/", views.wishlist_add, name="wishlist_add"),
+    path("wishlist/", views.wishlist_view, name="wishlist"),
+    path(
+        "wishlist/remove/<int:product_id>/",
+        views.remove_from_wishlist,
+        name="remove_from_wishlist",
+    ),
     # cart
     path("add-to-cart/<int:product_id>/", views.add_to_cart, name="add_to_cart"),
     path("cart/", views.cart_view, name="cart"),

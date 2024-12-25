@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from apps.products.models import Product, ProductVolume
 from apps.customers.models import Customer
+from django.contrib.auth.models import User
 
 
 class Cart(models.Model):
@@ -111,3 +112,18 @@ class OrderDetail(models.Model):
     @property
     def total(self):
         return self.quantity * self.price
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (
+            "user",
+            "product",
+        )  # Ensure each user can add a product only once
+
+    def __str__(self):
+        return f"{self.user.username}'s Wishlist - {self.product.name}"
